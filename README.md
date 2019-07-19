@@ -1,2 +1,2 @@
-# ion
+# ION
  Bitrix ION Module
