@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Class Ion
+ * @module ion
  */
 class ion extends CModule
 {
@@ -14,14 +14,7 @@ class ion extends CModule
 	
 	function __construct()
 	{
-		$arModuleVersion = array();
-		
-		$path = str_replace("\\", "/", __FILE__);
-		$path = substr($path, 0, strlen($path) - strlen("/index.php"));
-		include($path."/version.php");
-		
-
-		$this->MODULE_VERSION = "1.0.0";
+		$this->MODULE_VERSION = "1.0.1";
 		$this->MODULE_VERSION_DATE = "2019-07-18 18:00";
 		$this->MODULE_NAME = "ION";
 		$this->MODULE_DESCRIPTION = "Sources: github.com/amensum/ion";
@@ -30,8 +23,8 @@ class ion extends CModule
 	function InstallFiles()
 	{
 //		CopyDirFiles(
-//			$_SERVER["DOCUMENT_ROOT"]."/local/modules/github.amensum.ion/install/components",
-//			$_SERVER["DOCUMENT_ROOT"]."/bitrix/components",
+//			$_SERVER["DOCUMENT_ROOT"]."/local/modules/ion/install/components",
+//			$_SERVER["DOCUMENT_ROOT"]."/local/components",
 //			true,
 //			true
 //		);
@@ -40,7 +33,7 @@ class ion extends CModule
 	
 	function UnInstallFiles()
 	{
-//		DeleteDirFilesEx("/local/components/dv");
+//		DeleteDirFilesEx("/local/components/ion");
 		return true;
 	}
 	
@@ -49,12 +42,12 @@ class ion extends CModule
 		global $DOCUMENT_ROOT, $APPLICATION;
 		$this->InstallFiles();
 		
-		// <Events>
+		// <EVENTS>
 		$eventManager = \Bitrix\Main\EventManager::getInstance();
 		$eventManager->registerEventHandler("main", "OnAfterEpilog", $this->MODULE_ID, "Ion", "connectOnAfterEpilog");
-		// </Events>
+		// </EVENTS>
 		
-		RegisterModule("ion");
+		RegisterModule($this->MODULE_ID);
 	}
 	
 	function DoUninstall()
@@ -62,11 +55,11 @@ class ion extends CModule
 		global $DOCUMENT_ROOT, $APPLICATION;
 		$this->UnInstallFiles();
 		
-		// <Events>
+		// <EVENTS>
 		$eventManager = \Bitrix\Main\EventManager::getInstance();
 		$eventManager->unRegisterEventHandler("main", "OnAfterEpilog", $this->MODULE_ID, "Ion", "connectOnAfterEpilog");
-		// </Events>
+		// </EVENTS>
 		
-		UnRegisterModule("ion");
+		UnRegisterModule($this->MODULE_ID);
 	}
 }
