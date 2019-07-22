@@ -1,18 +1,18 @@
 <?php
 
-use Bitrix\Sale\Basket,
+use Bitrix\Main,
+	Bitrix\Main\Loader,
+	Bitrix\Main\Application,
+	Bitrix\Main\Config\Option,
+	Bitrix\Main\Context,
+	Bitrix\Sale,
+	Bitrix\Sale\Basket,
 	Bitrix\Sale\BasketItem,
 	Bitrix\Sale\Fuser,
-	Bitrix\Main\Context,
-	Bitrix\Main\Loader,
-	Bitrix\Sale\DiscountCouponsManager,
+	//Bitrix\Sale\DiscountCouponsManager,
 	Bitrix\Sale\Order,
-	Bitrix\Main\Config\Option,
 	Bitrix\Sale\Delivery,
-	Bitrix\Sale\PaySystem,
-	Bitrix\Sale,
-	Bitrix\Main,
-	Bitrix\Main\Application;
+	Bitrix\Sale\PaySystem;
 
 /**
  * Class Ion
@@ -344,7 +344,6 @@ class Ion {
 		$GLOBALS['APPLICATION']->RestartBuffer();
 		
 		if (!CModule::IncludeModule('sale')) die();
-		if (!Loader::includeModule('iblock')) die();
 		
 		// <PROPS>
 		$props = [];
@@ -352,18 +351,18 @@ class Ion {
 		while ($db_el = $db_list->GetNext()) {
 			$props[] = $db_el;
 		}
+		unset($db_list);
 		// </PROPS>
 		
 		// <DELIVERY>
-		$delivery = [];
-		$db_list = CSaleDelivery::GetList(['SORT' => 'ASC'], ['ACTIVE' => 'Y'], false, false, ['*']);
-		while ($db_el = $db_list->GetNext()) {
-			$delivery[] = $db_el;
-		}
-		unset($db_list);
+		$delivery = Delivery\Services\Manager::getActiveList();
 		
 		foreach ($delivery as $service) {
+			if ($service['CLASS_NAME'] == '\Bitrix\Sale\Delivery\Services\EmptyDeliveryService') {
+				continue;
+			}
 			$service['PROPS_GROUP_ID'] = 'DELIVERY';
+			$service['PRICE'] = $service['CONFIG']['MAIN']['PRICE'];
 			$service['LOGOTIP'] = CFile::ResizeImageGet($service['LOGOTIP'], ['width' => 500, 'height' => 500], BX_RESIZE_IMAGE_PROPORTIONAL, true);
 			$props[] = $service;
 		}
@@ -371,15 +370,42 @@ class Ion {
 		$delivery_group = ['ID' => 'DELIVERY', 'NAME' => 'DELIVERY', 'SORT' => '100'];
 		// </DELIVERY>
 		
+		// <PAYMENT>
+		$payment = [];
+		$db_list = PaySystem\Manager::getList(
+			[
+				'select' => ['*'],
+				'filter' => [
+					'=ACTIVE' => 'Y'
+				]
+			]
+		);
+		while ($db_el = $db_list->fetch()) {
+			$payment[] = $db_el;
+		}
+		unset($db_list);
+		
+		foreach ($payment as $system) {
+			$system['PROPS_GROUP_ID'] = 'PAYMENT';
+			$system['LOGOTIP'] = CFile::ResizeImageGet($system['LOGOTIP'], ['width' => 500, 'height' => 500], BX_RESIZE_IMAGE_PROPORTIONAL, true);
+			$props[] = $system;
+		}
+		
+		$payment_group = ['ID' => 'PAYMENT', 'NAME' => 'PAYMENT', 'SORT' => '200'];
+		// </PAYMENT>
+		
 		// <GROUPS>
 		$groups = [];
 		$db_list = CSaleOrderPropsGroup::GetList(['SORT' => 'ASC', 'ID' => 'ASC'], ['ACTIVE' => 'Y', '!ID' => $GLOBALS['ION']['DENY_GROUPS_IDS']]);
 		while ($db_el = $db_list->GetNext()) {
 			$groups[] = $db_el;
 		}
+		unset($db_list);
 		$groups[] = $delivery_group;
+		$groups[] = $payment_group;
 		// </GROUPS>
 		
+		// <PROPS TO GROUPS>
 		foreach ($groups as $key => &$group) {
 			foreach ($props as $prop) {
 				if($prop['PROPS_GROUP_ID'] == $group['ID']) {
@@ -394,6 +420,7 @@ class Ion {
 		usort($groups, function ($a, $b) {
 			return $a['SORT'] - $b['SORT'];
 		});
+		// </PROPS TO GROUPS>
 		
 		echo json_encode($groups);
 		return;
@@ -403,23 +430,29 @@ class Ion {
 		$GLOBALS['APPLICATION']->RestartBuffer();
 		
 		if (!CModule::IncludeModule('sale')) die();
-		if (!Loader::includeModule('iblock')) die();
 		
 		$delivery_service_id = intval($this->request["delivery_service_id"]);
 		$pay_system_id = intval($this->request["pay_system_id"]);
 		$person_type_id = intval($this->request["person_type_id"]);
 		$values = map_to_array(json_decode($this->request["values"]));
 		
-		if (!$pay_system_id || !$person_type_id || !$values) die();
+		if (!$pay_system_id || !$person_type_id || !$values || !$delivery_service_id) die();
+		
+		// <USER>
+		$user_id = CUser::GetID();
+		if ($user_id === null) {
+			$user_id = CSaleUser::GetAnonymousUserID();
+		}
+		// </USER>
 		
 		$allowed_fields = ['NAME', 'LASTNAME', 'EMAIL', 'PHONE'];
 		if (count($GLOBALS['ION']['ORDER_ALLOWED_FIELDS']) > 0) {
 			$allowed_fields = array_merge($GLOBALS['ION']['ORDER_ALLOWED_FIELDS'], $allowed_fields);
 		}
 		
-		DiscountCouponsManager::init();
+		//DiscountCouponsManager::init();
 		
-		$order = Order::create(Context::getCurrent()->getSite(), \CSaleUser::GetAnonymousUserID());
+		$order = Order::create(Context::getCurrent()->getSite(), $user_id);
 		$order->setPersonTypeId($person_type_id);
 		$basket = Sale\Basket::loadItemsForFUser(\CSaleBasket::GetBasketUserID(), Context::getCurrent()->getSite())->getOrderableItems();
 		$order->setBasket($basket);
