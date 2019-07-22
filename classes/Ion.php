@@ -15,8 +15,8 @@ use Bitrix\Main,
 	Bitrix\Sale\PaySystem;
 
 /**
- * Class Ion
- * Pattern Singleton
+ * @class Ion
+ * @pattern Singleton
  */
 class Ion {
 	
@@ -26,6 +26,9 @@ class Ion {
 	private $iblock_properties_to_return;
 	private $basket_properties_to_return;
 	
+	/**
+	 * @return mixed
+	 */
 	public static function getInstance() {
 		if (static::$instance === null) {
 			static::$instance = new static();
@@ -56,189 +59,238 @@ class Ion {
 	public static function connectOnAfterEpilog() {
 		$instance = Ion::getInstance();
 		$instance->registerRequestHandlers();
-		return;
 	}
 	
 	public function registerRequestHandlers() {
 		// <HANDLER> : get_ion_status
 		if ($this->request['action'] == 'get_ion_status') {
-			$this->getIonStatus();
+			$GLOBALS['APPLICATION']->RestartBuffer();
+			
+			$ion = $this->getIonStatus();
+			
+			echo json_encode($ion);
 		}
 		// </HANDLER>
 		
 		// <HANDLER> : add_product_to_basket
 		if ($this->request['action'] == 'add_product_to_basket') {
-			$this->addProductToBasket();
+			$GLOBALS['APPLICATION']->RestartBuffer();
+			
+			$product_id = intval($this->request['product_id']);
+			$quantity = intval($this->request['quantity']);
+			
+			$count = $this->addProductToBasket($product_id, $quantity);
+			
+			echo json_encode($count);
 		}
 		// </HANDLER>
 		
 		// <HANDLER> : change_product_quantity_in_basket
 		if ($this->request['action'] == 'change_product_quantity_in_basket') {
-			$this->changeProductQuantityInBasket();
+			$GLOBALS['APPLICATION']->RestartBuffer();
+			
+			$product_id = intval($this->request['product_id']);
+			$quantity = intval($this->request['quantity']);
+			
+			$msg = $this->changeProductQuantityInBasket($product_id, $quantity);
+			
+			echo json_encode($msg);
 		}
 		// </HANDLER>
 		
 		// <HANDLER> : remove_product_from_basket
 		if ($this->request['action'] == 'remove_product_from_basket') {
-			$this->removeProductFromBasket();
+			$GLOBALS['APPLICATION']->RestartBuffer();
+			
+			$product_id = intval($this->request['product_id']);
+			
+			$msg = $this->removeProductFromBasket($product_id);
+			
+			echo json_encode($msg);
 		}
 		// </HANDLER>
 		
 		// <HANDLER> : get_items_from_basket
 		if ($this->request['action'] == 'get_items_from_basket') {
-			$this->getItemsFromBasket();
+			$GLOBALS['APPLICATION']->RestartBuffer();
+			
+			$items = $this->getItemsFromBasket();
+			
+			echo json_encode($items);
 		}
 		// </HANDLER>
 		
 		// <HANDLER> : get_basket_info
 		if ($this->request['action'] == 'get_basket_info') {
-			$this->getBasketInfo();
+			$GLOBALS['APPLICATION']->RestartBuffer();
+			
+			$info = $this->getBasketInfo();
+			
+			echo json_encode($info);
 		}
 		// </HANDLER>
 		
 		// <HANDLER> : get_currency_format
 		if ($this->request['action'] == 'get_currency_format') {
-			$this->getCurrencyFormat();
+			$GLOBALS['APPLICATION']->RestartBuffer();
+			
+			$price = floatval($this->request['price']);
+			
+			$msg = $this->getCurrencyFormat($price);
+			
+			echo json_encode($msg);
 		}
 		// </HANDLER>
 		
 		// <HANDLER> : get_order_form_groups
 		if ($this->request['action'] == 'get_order_form_groups') {
-			$this->getOrderFormGroups();
+			$GLOBALS['APPLICATION']->RestartBuffer();
+			
+			$groups = $this->getOrderFormGroups();
+			
+			echo json_encode($groups);
 		}
 		// </HANDLER>
 		
 		// <HANDLER> : order_make_order
 		if ($this->request['action'] == 'order_make_order') {
-			$this->orderMakeOrder();
+			$GLOBALS['APPLICATION']->RestartBuffer();
+			
+			$delivery_service_id = intval($this->request["delivery_service_id"]);
+			$pay_system_id = intval($this->request["pay_system_id"]);
+			$person_type_id = intval($this->request["person_type_id"]);
+			$values = map_to_array(json_decode($this->request["values"]));
+			
+			$order_id = $this->orderMakeOrder($pay_system_id, $delivery_service_id, $person_type_id, $values);
+			
+			echo json_encode($order_id);
 		}
 		// </HANDLER>
 	}
 	
+	/**
+	 * @return array
+	 */
 	private function getIonStatus() {
-		$GLOBALS['APPLICATION']->RestartBuffer();
-		echo json_encode([
+		$ion = [
 			'Ion' => [
 				'status' => true
 			]
-		]);
-		return;
+		];
+		
+		return $ion;
 	}
 	
-	private function addProductToBasket() {
-		$GLOBALS['APPLICATION']->RestartBuffer();
-		
+	/**
+	 * @param $product_id
+	 * @param $quantity
+	 * @return int
+	 */
+	private function addProductToBasket($product_id, $quantity) {
 		if (!CModule::IncludeModule('sale')) die();
 		
-		$product_id = intval($this->request['product_id']);
-		$quantity = intval($this->request['quantity']);
+		if(!$product_id || !$quantity) die();
+			
+		$basket = Basket::loadItemsForFUser(Fuser::getId(), Context::getCurrent()->getSite());
 		
-		if($product_id && $quantity) {
+		if ($basketItem = $basket->getExistsItem('catalog', $product_id)) {
 			
-			$basket = Basket::loadItemsForFUser(Fuser::getId(), Context::getCurrent()->getSite());
+			// Обновление товара в корзине
+			$basketItem->setField('QUANTITY', $basketItem->getQuantity() + $quantity);
+			$basket->save();
 			
-			if ($basketItem = $basket->getExistsItem('catalog', $product_id)) {
-				
-				// Обновление товара в корзине
-				$basketItem->setField('QUANTITY', $basketItem->getQuantity() + $quantity);
-				$basket->save();
-				
-			} else {
-				
-				// Добавление товара в корзину
-				$basketItem = $basket->createItem('catalog', $product_id);
-				$basketItem->setFields(
-					[
-						'QUANTITY' => $quantity,
-						'CURRENCY' => Bitrix\Currency\CurrencyManager::getBaseCurrency(),
-						'LID' => Bitrix\Main\Context::getCurrent()->getSite(),
-						'PRODUCT_PROVIDER_CLASS' => 'CCatalogProductProvider'
-					]
-				);
-				$basket->save();
-			}
+		} else {
 			
-			echo count($basket->getListOfFormatText());
+			// Добавление товара в корзину
+			$basketItem = $basket->createItem('catalog', $product_id);
+			$basketItem->setFields(
+				[
+					'QUANTITY' => $quantity,
+					'CURRENCY' => Bitrix\Currency\CurrencyManager::getBaseCurrency(),
+					'LID' => Bitrix\Main\Context::getCurrent()->getSite(),
+					'PRODUCT_PROVIDER_CLASS' => 'CCatalogProductProvider'
+				]
+			);
+			$basket->save();
 		}
 		
-		return;
+		$count = count($basket->getListOfFormatText());
+		
+		return $count;
 	}
 	
-	private function changeProductQuantityInBasket() {
-		$GLOBALS['APPLICATION']->RestartBuffer();
-		
-		if (!CModule::IncludeModule('sale')) die();
-		
-		$msg['status'] = false;
-		
-		$product_id = intval($this->request['product_id']);
-		$quantity = intval($this->request['quantity']);
-		
-		if($product_id && $quantity) {
-			
-			$basket = Basket::loadItemsForFUser(Fuser::getId(), Context::getCurrent()->getSite());
-			
-			if ($basketItem = $basket->getExistsItem('catalog', $product_id)) {
-				
-				// Обновление товара в корзине
-				$basketItem->setField('QUANTITY', $quantity);
-				$basket->save();
-				
-				$msg['status'] = true;
-				$msg['action'] = 'update';
-				
-			} else {
-				
-				// Добавление товара в корзину
-				$basketItem = $basket->createItem('catalog', $product_id);
-				$basketItem->setFields(
-					[
-						'QUANTITY' => $quantity,
-						'CURRENCY' => Bitrix\Currency\CurrencyManager::getBaseCurrency(),
-						'LID' => Bitrix\Main\Context::getCurrent()->getSite(),
-						'PRODUCT_PROVIDER_CLASS' => 'CCatalogProductProvider'
-					]
-				);
-				$basket->save();
-				
-				$msg['status'] = true;
-				$msg['action'] = 'add';
-			}
-		}
-		
-		echo json_encode($msg);
-		return;
-	}
-	
-	private function removeProductFromBasket() {
-		$GLOBALS['APPLICATION']->RestartBuffer();
-		
+	/**
+	 * @param $product_id
+	 * @param $quantity
+	 * @return mixed
+	 */
+	private function changeProductQuantityInBasket($product_id, $quantity) {
 		if (!CModule::IncludeModule('sale')) die();
 		
 		$msg['status'] = false;
 		
-		$product_id = intval($this->request['product_id']);
+		if(!$product_id || !$quantity) die();
+			
+		$basket = Basket::loadItemsForFUser(Fuser::getId(), Context::getCurrent()->getSite());
 		
-		if($product_id) {
+		if ($basketItem = $basket->getExistsItem('catalog', $product_id)) {
 			
-			$basket = Basket::loadItemsForFUser(Fuser::getId(), Context::getCurrent()->getSite());
+			// Обновление товара в корзине
+			$basketItem->setField('QUANTITY', $quantity);
+			$basket->save();
 			
-			if ($basketItem = $basket->getExistsItem('catalog', $product_id)) {
-				
-				$basketItem->delete();
-				$basket->save();
-				
-				$msg['status'] = true;
-			}
+			$msg['status'] = true;
+			$msg['action'] = 'update';
+			
+		} else {
+			
+			// Добавление товара в корзину
+			$basketItem = $basket->createItem('catalog', $product_id);
+			$basketItem->setFields(
+				[
+					'QUANTITY' => $quantity,
+					'CURRENCY' => Bitrix\Currency\CurrencyManager::getBaseCurrency(),
+					'LID' => Bitrix\Main\Context::getCurrent()->getSite(),
+					'PRODUCT_PROVIDER_CLASS' => 'CCatalogProductProvider'
+				]
+			);
+			$basket->save();
+			
+			$msg['status'] = true;
+			$msg['action'] = 'add';
 		}
 		
-		echo json_encode($msg);
-		return;
+		return $msg;
 	}
 	
+	/**
+	 * @param $product_id
+	 * @return mixed
+	 */
+	private function removeProductFromBasket($product_id) {
+		if (!CModule::IncludeModule('sale')) die();
+		
+		$msg['status'] = false;
+		
+		if(!$product_id) die();
+			
+		$basket = Basket::loadItemsForFUser(Fuser::getId(), Context::getCurrent()->getSite());
+		
+		if ($basketItem = $basket->getExistsItem('catalog', $product_id)) {
+			
+			$basketItem->delete();
+			$basket->save();
+			
+			$msg['status'] = true;
+		}
+		
+		return $msg;
+	}
+	
+	/**
+	 * @return array
+	 */
 	private function getItemsFromBasket() {
-		$GLOBALS['APPLICATION']->RestartBuffer();
-		
 		if (!CModule::IncludeModule('sale')) die();
 		if (!Loader::includeModule('iblock')) die();
 		
@@ -287,13 +339,13 @@ class Ion {
 		
 		unset($db_basket_list);
 		
-		echo json_encode($items);
-		return;
+		return $items;
 	}
 	
+	/**
+	 * @return array
+	 */
 	private function getBasketInfo() {
-		$GLOBALS['APPLICATION']->RestartBuffer();
-		
 		if (!CModule::IncludeModule('sale')) die();
 		if (!Loader::includeModule('iblock')) die();
 		
@@ -311,38 +363,36 @@ class Ion {
 		$info['ITEMS_QUANTITY'] = $basket->getQuantityList();
 		$info['QUANTITY'] = count($info['ITEMS_QUANTITY']);
 		
-		echo json_encode($info);
-		return;
+		return $info;
 	}
 	
-	private function getCurrencyFormat() {
-		$GLOBALS['APPLICATION']->RestartBuffer();
-		
+	/**
+	 * @param $price
+	 * @param null $currency
+	 * @return array
+	 */
+	private function getCurrencyFormat($price, $currency = null) {
 		if (!CModule::IncludeModule('sale')) die();
 		
 		$msg = [];
 		$msg['status'] = false;
 		
+		if (!$price) die();
 		
-		$price = floatval($this->request['price']);
-		$currency = CCurrency::GetBaseCurrency();
-		
-		if($this->request['currency']) {
-			$currency = htmlspecialchars($this->request['currency']);
+		if(!$currency) {
+			$currency = CCurrency::GetBaseCurrency();
 		}
 		
-		if ($price && $currency) {
-			$msg['FORMATTED_PRICE'] = CCurrencyLang::CurrencyFormat($price, $currency);
-			$msg['status'] = true;
-		}
+		$msg['FORMATTED_PRICE'] = CCurrencyLang::CurrencyFormat($price, $currency);
+		$msg['status'] = true;
 		
-		echo json_encode($msg);
-		return;
+		return $msg;
 	}
 	
+	/**
+	 * @return array
+	 */
 	private function getOrderFormGroups() {
-		$GLOBALS['APPLICATION']->RestartBuffer();
-		
 		if (!CModule::IncludeModule('sale')) die();
 		
 		// <PROPS>
@@ -422,19 +472,18 @@ class Ion {
 		});
 		// </PROPS TO GROUPS>
 		
-		echo json_encode($groups);
-		return;
+		return $groups;
 	}
 	
-	private function orderMakeOrder() {
-		$GLOBALS['APPLICATION']->RestartBuffer();
-		
+	/**
+	 * @param $pay_system_id
+	 * @param $delivery_service_id
+	 * @param $person_type_id
+	 * @param $values
+	 * @return mixed
+	 */
+	private function orderMakeOrder($pay_system_id, $delivery_service_id, $person_type_id, $values) {
 		if (!CModule::IncludeModule('sale')) die();
-		
-		$delivery_service_id = intval($this->request["delivery_service_id"]);
-		$pay_system_id = intval($this->request["pay_system_id"]);
-		$person_type_id = intval($this->request["person_type_id"]);
-		$values = map_to_array(json_decode($this->request["values"]));
 		
 		if (!$pay_system_id || !$person_type_id || !$values || !$delivery_service_id) die();
 		
@@ -500,7 +549,6 @@ class Ion {
 		$order->save();
 		$order_id = $order->GetId();
 		
-		echo json_encode($order_id);
-		return;
+		return $order_id;
 	}
 }
