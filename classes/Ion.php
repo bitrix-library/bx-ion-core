@@ -1,18 +1,21 @@
 <?php
 
-use Bitrix\Main,
-	Bitrix\Main\Loader,
-	Bitrix\Main\Application,
-	Bitrix\Main\Config\Option,
-	Bitrix\Main\Context,
-	Bitrix\Sale,
-	Bitrix\Sale\Basket,
-	Bitrix\Sale\BasketItem,
-	Bitrix\Sale\Fuser,
-	//Bitrix\Sale\DiscountCouponsManager,
-	Bitrix\Sale\Order,
-	Bitrix\Sale\Delivery,
-	Bitrix\Sale\PaySystem;
+namespace Ion;
+
+use \Bitrix\Main,
+	\Bitrix\Main\Loader,
+	\Bitrix\Main\Application,
+	\Bitrix\Main\Config\Option,
+	\Bitrix\Main\Context,
+	\Bitrix\Currency\CurrencyManager,
+	\Bitrix\Sale,
+	\Bitrix\Sale\Basket,
+	\Bitrix\Sale\BasketItem,
+	\Bitrix\Sale\Fuser,
+	//\Bitrix\Sale\DiscountCouponsManager,
+	\Bitrix\Sale\Order,
+	\Bitrix\Sale\Delivery,
+	\Bitrix\Sale\PaySystem;
 
 /**
  * @class Ion
@@ -23,8 +26,6 @@ class Ion {
 	private static $instance;
 	private $context;
 	private $request;
-	private $iblock_properties_to_return;
-	private $basket_properties_to_return;
 	
 	/**
 	 * @return mixed
@@ -39,21 +40,6 @@ class Ion {
 	private function __construct() {
 		$this->context = Application::getInstance()->getContext();
 		$this->request = $this->context->getRequest();
-		$this->iblock_properties_to_return = [
-			'ID',
-			'IBLOCK_ID',
-			'NAME',
-			'PREVIEW_PICTURE',
-			'DETAIL_PAGE_URL',
-			'PROPERTY_ARTNUMBER'
-		]; // Если необходимо получить все свойства: ['ID', 'IBLOCK_ID', '*']
-		$this->basket_properties_to_return = [
-			'PRODUCT_ID',
-			'QUANTITY',
-			'PRICE',
-			'WEIGHT',
-			'CURRENCY'
-		]; // Если необходимо получить все поля: ['*']
 	}
 	
 	public static function connectOnAfterEpilog() {
@@ -159,7 +145,7 @@ class Ion {
 			$delivery_service_id = intval($this->request["delivery_service_id"]);
 			$pay_system_id = intval($this->request["pay_system_id"]);
 			$person_type_id = intval($this->request["person_type_id"]);
-			$values = map_to_array(json_decode($this->request["values"]));
+			$values = Util::mapToArray(json_decode($this->request["values"]));
 			
 			$order_id = $this->orderMakeOrder($pay_system_id, $delivery_service_id, $person_type_id, $values);
 			
@@ -187,11 +173,11 @@ class Ion {
 	 * @return int
 	 */
 	private function addProductToBasket($product_id, $quantity) {
-		if (!CModule::IncludeModule('sale')) die();
+		if (!Loader::includeModule('sale')) die();
 		
 		if(!$product_id || !$quantity) die();
-			
-		$basket = Basket::loadItemsForFUser(Fuser::getId(), Context::getCurrent()->getSite());
+		
+		$basket = Basket::loadItemsForFUser(Fuser::getId(), $this->context->getSite());
 		
 		if ($basketItem = $basket->getExistsItem('catalog', $product_id)) {
 			
@@ -206,8 +192,8 @@ class Ion {
 			$basketItem->setFields(
 				[
 					'QUANTITY' => $quantity,
-					'CURRENCY' => Bitrix\Currency\CurrencyManager::getBaseCurrency(),
-					'LID' => Bitrix\Main\Context::getCurrent()->getSite(),
+					'CURRENCY' => CurrencyManager::getBaseCurrency(),
+					'LID' => $this->context->getSite(),
 					'PRODUCT_PROVIDER_CLASS' => 'CCatalogProductProvider'
 				]
 			);
@@ -225,13 +211,13 @@ class Ion {
 	 * @return mixed
 	 */
 	private function changeProductQuantityInBasket($product_id, $quantity) {
-		if (!CModule::IncludeModule('sale')) die();
+		if (!Loader::includeModule('sale')) die();
 		
 		$msg['status'] = false;
 		
 		if(!$product_id || !$quantity) die();
-			
-		$basket = Basket::loadItemsForFUser(Fuser::getId(), Context::getCurrent()->getSite());
+		
+		$basket = Basket::loadItemsForFUser(Fuser::getId(), $this->context->getSite());
 		
 		if ($basketItem = $basket->getExistsItem('catalog', $product_id)) {
 			
@@ -249,8 +235,8 @@ class Ion {
 			$basketItem->setFields(
 				[
 					'QUANTITY' => $quantity,
-					'CURRENCY' => Bitrix\Currency\CurrencyManager::getBaseCurrency(),
-					'LID' => Bitrix\Main\Context::getCurrent()->getSite(),
+					'CURRENCY' => CurrencyManager::getBaseCurrency(),
+					'LID' => $this->context->getSite(),
 					'PRODUCT_PROVIDER_CLASS' => 'CCatalogProductProvider'
 				]
 			);
@@ -268,13 +254,13 @@ class Ion {
 	 * @return mixed
 	 */
 	private function removeProductFromBasket($product_id) {
-		if (!CModule::IncludeModule('sale')) die();
+		if (!Loader::includeModule('sale')) die();
 		
 		$msg['status'] = false;
 		
 		if(!$product_id) die();
-			
-		$basket = Basket::loadItemsForFUser(Fuser::getId(), Context::getCurrent()->getSite());
+		
+		$basket = Basket::loadItemsForFUser(Fuser::getId(), $this->context->getSite());
 		
 		if ($basketItem = $basket->getExistsItem('catalog', $product_id)) {
 			
@@ -291,17 +277,29 @@ class Ion {
 	 * @return array
 	 */
 	private function getItemsFromBasket() {
-		if (!CModule::IncludeModule('sale')) die();
+		if (!Loader::includeModule('sale')) die();
 		if (!Loader::includeModule('iblock')) die();
 		
 		$items = [];
 		
+		$allowed_fields = [
+			'PRODUCT_ID',
+			'QUANTITY',
+			'PRICE',
+			'WEIGHT',
+			'CURRENCY'
+		]; // Если необходимо получить все поля: ['*']
+		
+		if (count($GLOBALS['ION']['BASKET_ALLOWED_FIELDS']) > 0) {
+			$allowed_fields = array_merge($GLOBALS['ION']['BASKET_ALLOWED_FIELDS'], $allowed_fields);
+		}
+		
 		$db_basket_list = Basket::getList([
-			'select' => $this->basket_properties_to_return,
+			'select' => $allowed_fields,
 			'filter' => [
 				'=FUSER_ID' => Fuser::getId(),
 				'=ORDER_ID' => null,
-				'=LID' => Context::getCurrent()->getSite(),
+				'=LID' => $this->context->getSite(),
 				'=CAN_BUY' => 'Y',
 			]
 		]);
@@ -310,29 +308,41 @@ class Ion {
 		{
 			
 			// Получение IBLOCK_ID элемента с которым связан продукт
-			$db_iblock_list = CIBlockElement::GetById($db_basket_el['PRODUCT_ID']);
+			$db_iblock_list = \CIBlockElement::GetById($db_basket_el['PRODUCT_ID']);
 			if ($db_iblock_el = $db_iblock_list->GetNext()) {
 				$db_basket_el['PRODUCT_IBLOCK_ID'] = $db_iblock_el['IBLOCK_ID'];
 			}
 			unset($db_iblock_list);
 			
+			$allowed_fields_iblock = [
+				'ID',
+				'IBLOCK_ID',
+				'NAME',
+				'PREVIEW_PICTURE',
+				'DETAIL_PAGE_URL',
+			]; // Если необходимо получить все свойства: ['ID', 'IBLOCK_ID', '*']
+			
+			if (count($GLOBALS['ION']['BASKET_ALLOWED_FIELDS_IBLOCK']) > 0) {
+				$allowed_fields_iblock = array_merge($GLOBALS['ION']['BASKET_ALLOWED_FIELDS_IBLOCK'], $allowed_fields_iblock);
+			}
+			
 			// Получение всех полей элемента с которым связан продукт
-			$db_iblock_list = CIBlockElement::GetList(
+			$db_iblock_list = \CIBlockElement::GetList(
 				[],
 				['IBLOCK_ID' => $db_basket_el['PRODUCT_IBLOCK_ID'], 'ID' => $db_basket_el['PRODUCT_ID']],
 				false,
 				false,
-				$this->iblock_properties_to_return
+				$allowed_fields_iblock
 			);
 			if ($db_iblock_el = $db_iblock_list->GetNext()) {
 				// Получение картинки и изменение ее размеров
-				$db_iblock_el['PREVIEW_PICTURE'] = CFile::ResizeImageGet($db_iblock_el["PREVIEW_PICTURE"], ['width' => 500, 'height' => 500], BX_RESIZE_IMAGE_PROPORTIONAL, true);
+				$db_iblock_el['PREVIEW_PICTURE'] = \CFile::ResizeImageGet($db_iblock_el["PREVIEW_PICTURE"], ['width' => 500, 'height' => 500], BX_RESIZE_IMAGE_PROPORTIONAL, true);
 				$db_basket_el['PRODUCT'] = $db_iblock_el;
 			}
 			unset($db_iblock_list);
 			
-			$db_basket_el['FORMATTED_PRICE'] = CCurrencyLang::CurrencyFormat($db_basket_el['PRICE'], $db_basket_el['CURRENCY']);
-			$db_basket_el['SUM_FORMATTED_PRICE'] = CCurrencyLang::CurrencyFormat($db_basket_el['PRICE'] * $db_basket_el['QUANTITY'], $db_basket_el['CURRENCY']);
+			$db_basket_el['FORMATTED_PRICE'] = \CCurrencyLang::CurrencyFormat($db_basket_el['PRICE'], $db_basket_el['CURRENCY']);
+			$db_basket_el['SUM_FORMATTED_PRICE'] = \CCurrencyLang::CurrencyFormat($db_basket_el['PRICE'] * $db_basket_el['QUANTITY'], $db_basket_el['CURRENCY']);
 			
 			$items[] = $db_basket_el;
 		}
@@ -346,20 +356,20 @@ class Ion {
 	 * @return array
 	 */
 	private function getBasketInfo() {
-		if (!CModule::IncludeModule('sale')) die();
+		if (!Loader::includeModule('sale')) die();
 		if (!Loader::includeModule('iblock')) die();
 		
 		$info = [];
 		
-		$basket = Basket::loadItemsForFUser(Fuser::getId(), Context::getCurrent()->getSite());
+		$basket = Basket::loadItemsForFUser(Fuser::getId(), $this->context->getSite());
 		
 		$info['PRICE'] = $basket->getPrice();
 		$info['PRICE_WITHOUT_DISCOUNTS'] = $basket->getBasePrice();
 		$info['WEIGHT'] = $basket->getWeight();
 		$info['VAT_RATE'] = $basket->getVatRate();
 		$info['VAT_SUM'] = $basket->getVatSum();
-		$info['FORMATTED_PRICE'] = CCurrencyLang::CurrencyFormat($info['PRICE'], CCurrency::GetBaseCurrency());
-		$info['FORMATTED_PRICE_WITHOUT_DISCOUNTS'] = CCurrencyLang::CurrencyFormat($info['PRICE_WITHOUT_DISCOUNTS'], CCurrency::GetBaseCurrency());
+		$info['FORMATTED_PRICE'] = \CCurrencyLang::CurrencyFormat($info['PRICE'], \CCurrency::GetBaseCurrency());
+		$info['FORMATTED_PRICE_WITHOUT_DISCOUNTS'] = \CCurrencyLang::CurrencyFormat($info['PRICE_WITHOUT_DISCOUNTS'], \CCurrency::GetBaseCurrency());
 		$info['ITEMS_QUANTITY'] = $basket->getQuantityList();
 		$info['QUANTITY'] = count($info['ITEMS_QUANTITY']);
 		
@@ -372,7 +382,7 @@ class Ion {
 	 * @return array
 	 */
 	private function getCurrencyFormat($price, $currency = null) {
-		if (!CModule::IncludeModule('sale')) die();
+		if (!Loader::includeModule('sale')) die();
 		
 		$msg = [];
 		$msg['status'] = false;
@@ -380,10 +390,10 @@ class Ion {
 		if (!$price) die();
 		
 		if(!$currency) {
-			$currency = CCurrency::GetBaseCurrency();
+			$currency = \CCurrency::GetBaseCurrency();
 		}
 		
-		$msg['FORMATTED_PRICE'] = CCurrencyLang::CurrencyFormat($price, $currency);
+		$msg['FORMATTED_PRICE'] = \CCurrencyLang::CurrencyFormat($price, $currency);
 		$msg['status'] = true;
 		
 		return $msg;
@@ -393,11 +403,11 @@ class Ion {
 	 * @return array
 	 */
 	private function getOrderFormGroups() {
-		if (!CModule::IncludeModule('sale')) die();
+		if (!Loader::includeModule('sale')) die();
 		
 		// <PROPS>
 		$props = [];
-		$db_list = CSaleOrderProps::GetList(['SORT' => 'ASC', 'ID' => 'ASC'], ['ACTIVE' => 'Y'], false, false, ['ID', 'CODE', 'PROPS_GROUP_ID', 'NAME', 'REQUIED']);
+		$db_list = \CSaleOrderProps::GetList(['SORT' => 'ASC', 'ID' => 'ASC'], ['ACTIVE' => 'Y'], false, false, ['ID', 'CODE', 'PROPS_GROUP_ID', 'NAME', 'REQUIED']);
 		while ($db_el = $db_list->GetNext()) {
 			$props[] = $db_el;
 		}
@@ -413,7 +423,7 @@ class Ion {
 			}
 			$service['PROPS_GROUP_ID'] = 'DELIVERY';
 			$service['PRICE'] = $service['CONFIG']['MAIN']['PRICE'];
-			$service['LOGOTIP'] = CFile::ResizeImageGet($service['LOGOTIP'], ['width' => 500, 'height' => 500], BX_RESIZE_IMAGE_PROPORTIONAL, true);
+			$service['LOGOTIP'] = \CFile::ResizeImageGet($service['LOGOTIP'], ['width' => 500, 'height' => 500], BX_RESIZE_IMAGE_PROPORTIONAL, true);
 			$props[] = $service;
 		}
 		
@@ -437,7 +447,7 @@ class Ion {
 		
 		foreach ($payment as $system) {
 			$system['PROPS_GROUP_ID'] = 'PAYMENT';
-			$system['LOGOTIP'] = CFile::ResizeImageGet($system['LOGOTIP'], ['width' => 500, 'height' => 500], BX_RESIZE_IMAGE_PROPORTIONAL, true);
+			$system['LOGOTIP'] = \CFile::ResizeImageGet($system['LOGOTIP'], ['width' => 500, 'height' => 500], BX_RESIZE_IMAGE_PROPORTIONAL, true);
 			$props[] = $system;
 		}
 		
@@ -446,7 +456,7 @@ class Ion {
 		
 		// <GROUPS>
 		$groups = [];
-		$db_list = CSaleOrderPropsGroup::GetList(['SORT' => 'ASC', 'ID' => 'ASC'], ['ACTIVE' => 'Y', '!ID' => $GLOBALS['ION']['DENY_GROUPS_IDS']]);
+		$db_list = \CSaleOrderPropsGroup::GetList(['SORT' => 'ASC', 'ID' => 'ASC'], ['ACTIVE' => 'Y', '!ID' => $GLOBALS['ION']['DENY_GROUPS_IDS']]);
 		while ($db_el = $db_list->GetNext()) {
 			$groups[] = $db_el;
 		}
@@ -483,12 +493,12 @@ class Ion {
 	 * @return mixed
 	 */
 	private function orderMakeOrder($pay_system_id, $delivery_service_id, $person_type_id, $values) {
-		if (!CModule::IncludeModule('sale')) die();
+		if (!Loader::includeModule('sale')) die();
 		
 		if (!$pay_system_id || !$person_type_id || !$values || !$delivery_service_id) die();
 		
 		// <USER>
-		$user_id = CUser::GetID();
+		$user_id = \CUser::GetID();
 		if ($user_id === null) {
 			$user_id = CSaleUser::GetAnonymousUserID();
 		}
@@ -501,9 +511,9 @@ class Ion {
 		
 		//DiscountCouponsManager::init();
 		
-		$order = Order::create(Context::getCurrent()->getSite(), $user_id);
+		$order = Order::create($this->context->getSite(), $user_id);
 		$order->setPersonTypeId($person_type_id);
-		$basket = Sale\Basket::loadItemsForFUser(\CSaleBasket::GetBasketUserID(), Context::getCurrent()->getSite())->getOrderableItems();
+		$basket = Sale\Basket::loadItemsForFUser(\CSaleBasket::GetBasketUserID(), $this->context->getSite())->getOrderableItems();
 		$order->setBasket($basket);
 		
 		// <SHIPMENT>
@@ -537,7 +547,7 @@ class Ion {
 		
 		$propertyCollection = $order->getPropertyCollection();
 		
-		$currencyCode = Option::get('sale', 'default_currency', 'RUB', Context::getCurrent()->getSite());
+		$currencyCode = Option::get('sale', 'default_currency', 'RUB', $this->context->getSite());
 		$order->setField('CURRENCY', $currencyCode);
 		
 		foreach ($propertyCollection as $el) {

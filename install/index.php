@@ -44,7 +44,7 @@ class ion extends CModule
 		
 		// <EVENTS>
 		$eventManager = \Bitrix\Main\EventManager::getInstance();
-		$eventManager->registerEventHandler("main", "OnAfterEpilog", $this->MODULE_ID, "Ion", "connectOnAfterEpilog");
+		$eventManager->registerEventHandler("main", "OnAfterEpilog", $this->MODULE_ID, "\Ion\Ion", "connectOnAfterEpilog");
 		// </EVENTS>
 		
 		RegisterModule($this->MODULE_ID);
@@ -57,7 +57,7 @@ class ion extends CModule
 		
 		// <EVENTS>
 		$eventManager = \Bitrix\Main\EventManager::getInstance();
-		$eventManager->unRegisterEventHandler("main", "OnAfterEpilog", $this->MODULE_ID, "Ion", "connectOnAfterEpilog");
+		$eventManager->unRegisterEventHandler("main", "OnAfterEpilog", $this->MODULE_ID, "\Ion\Ion", "connectOnAfterEpilog");
 		// </EVENTS>
 		
 		UnRegisterModule($this->MODULE_ID);
