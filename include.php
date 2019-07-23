@@ -7,4 +7,4 @@ $arClasses = array(
 	'\Ion\Util' => 'classes/Util.php'
 );
 
-Loader::registerAutoLoadClasses("ion", $arClasses);
+Loader::registerAutoLoadClasses('ion', $arClasses);

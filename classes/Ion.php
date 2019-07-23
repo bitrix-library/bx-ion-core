@@ -8,6 +8,7 @@ use \Bitrix\Main,
 	\Bitrix\Main\Config\Option,
 	\Bitrix\Main\Context,
 	\Bitrix\Currency\CurrencyManager,
+	\Bitrix\Main\Page\Asset,
 	\Bitrix\Sale,
 	\Bitrix\Sale\Basket,
 	\Bitrix\Sale\BasketItem,
@@ -27,6 +28,8 @@ class Ion {
 	private static $instance;
 	private $context;
 	private $request;
+	private $module_absolute_path;
+	private $module_relative_path;
 	
 	/**
 	 * @return mixed
@@ -41,6 +44,13 @@ class Ion {
 	private function __construct() {
 		$this->context = Application::getInstance()->getContext();
 		$this->request = $this->context->getRequest();
+		$this->module_absolute_path = str_replace("\\", "/", dirname(__DIR__ . '\\..\\'));
+		$this->module_relative_path = str_replace($_SERVER['DOCUMENT_ROOT'], '', $this->module_absolute_path);
+	}
+	
+	public static function connectOnProlog() {
+		$instance = Ion::getInstance();
+		Asset::getInstance()->addJs($instance->module_relative_path . '/js/Util.js');
 	}
 	
 	public static function connectOnAfterEpilog() {
