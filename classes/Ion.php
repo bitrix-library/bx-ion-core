@@ -512,7 +512,7 @@ class Ion {
 		// <USER>
 		$user_id = \CUser::GetID();
 		if ($user_id === null) {
-			$user_id = CSaleUser::GetAnonymousUserID();
+			$user_id = \CSaleUser::GetAnonymousUserID();
 		}
 		// </USER>
 		
