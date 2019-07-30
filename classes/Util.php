@@ -55,4 +55,18 @@ class Util {
 		}
 		return $new_array;
 	}
+	
+	public static function getInstagramImages($user_id, $images_count) {
+		$items = [];
+		$url = "https://instagram.com/graphql/query/?query_id=17888483320059182&id={$user_id}&first={$images_count}";
+		$content = json_decode(file_get_contents($url));
+		$nodes = $content->data->user->edge_owner_to_timeline_media->edges;
+		foreach ($nodes as $obj) {
+			$node = $obj->node;
+			$thumbnail = $node->thumbnail_resources["1"];
+			$item = ["SRC" => $thumbnail->src];
+			$items[] = $item;
+		}
+		return $items;
+	}
 }
