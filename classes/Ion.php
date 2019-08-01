@@ -163,6 +163,16 @@ class Ion {
 			echo json_encode($order_id);
 		}
 		// </HANDLER>
+		
+		// <HANDLER> : search_items_by_name
+		if ($this->request['action'] == 'search_items_by_name') {
+			$GLOBALS['APPLICATION']->RestartBuffer();
+			
+			$items = $this->searchItemsByName($this->request["name"], $this->request["page"]);
+			
+			echo json_encode($items);
+		}
+		// </HANDLER>
 	}
 	
 	/**
@@ -291,7 +301,7 @@ class Ion {
 		if (!Loader::includeModule('sale')) die();
 		if (!Loader::includeModule('iblock')) die();
 		
-		$items = [];
+		$items = array();
 		
 		$basket = Basket::loadItemsForFUser(Fuser::getId(), $this->context->getSite());
 		
@@ -305,7 +315,7 @@ class Ion {
 		$basket_items = $basket->getBasketItems();
 		
 		foreach ($basket_items as $obj) {
-			$item = [];
+			$item = array();
 			$item['PRODUCT_ID'] = $obj->getProductId();
 			$item['PRICE'] = $obj->getPrice();
 			$item['SUM_PRICE'] = $obj->getFinalPrice();
@@ -364,7 +374,7 @@ class Ion {
 		if (!Loader::includeModule('sale')) die();
 		if (!Loader::includeModule('iblock')) die();
 		
-		$info = [];
+		$info = array();
 		
 		$basket = Basket::loadItemsForFUser(Fuser::getId(), $this->context->getSite());
 		
@@ -396,7 +406,7 @@ class Ion {
 	public function getCurrencyFormat($price, $currency = null) {
 		if (!Loader::includeModule('sale')) die();
 		
-		$msg = [];
+		$msg = array();
 		$msg['status'] = false;
 		
 		if (!$price) die();
@@ -418,7 +428,7 @@ class Ion {
 		if (!Loader::includeModule('sale')) die();
 		
 		// <PROPS>
-		$props = [];
+		$props = array();
 		$db_list = \CSaleOrderProps::GetList(['SORT' => 'ASC', 'ID' => 'ASC'], ['ACTIVE' => 'Y'], false, false, ['ID', 'CODE', 'PROPS_GROUP_ID', 'NAME', 'REQUIED']);
 		while ($db_el = $db_list->GetNext()) {
 			$props[] = $db_el;
@@ -443,7 +453,7 @@ class Ion {
 		// </DELIVERY>
 		
 		// <PAYMENT>
-		$payment = [];
+		$payment = array();
 		$db_list = PaySystem\Manager::getList(
 			[
 				'select' => ['*'],
@@ -467,7 +477,7 @@ class Ion {
 		// </PAYMENT>
 		
 		// <GROUPS>
-		$groups = [];
+		$groups = array();
 		$db_list = \CSaleOrderPropsGroup::GetList(['SORT' => 'ASC', 'ID' => 'ASC'], ['ACTIVE' => 'Y', '!ID' => $GLOBALS['ION']['DENY_GROUPS_IDS']]);
 		while ($db_el = $db_list->GetNext()) {
 			$groups[] = $db_el;
@@ -571,6 +581,76 @@ class Ion {
 		$order->save();
 		$order_id = $order->GetId();
 		
+//		// <MAIL>
+//		$site_email_from = \COption::GetOptionString("main", "email_from");
+//		$user_email = $values['EMAIL'];
+//		$user_name = $values['NAME'];
+//		$lid = $this->context->getSite();
+//		$send_result = \Bitrix\Main\Mail\Event::send(array(
+//			"EVENT_NAME" => "SALE_NEW_ORDER",
+//			"LID" => $lid,
+//			"C_FIELDS" => array(
+//				"BCC" => $site_email_from,
+//				"EMAIL" => $user_email,
+//				"SALE_EMAIL" => $site_email_from,
+//				"ORDER_ID" => $order_id,
+//				"ORDER_REAL_ID" => $order_id,
+//				"ORDER_USER" => $user_name
+//			)
+//		));
+//		// </MAIL>
+		
 		return $order_id;
+	}
+	
+	/**
+	 * @param $name
+	 * @param int $page
+	 * @param int $page_size
+	 * @return array
+	 */
+	public function searchItemsByName($name, $page = 1, $page_size = 10) {
+		
+		$iblock_id = $GLOBALS['ION']['SEARCH_IBLOCK_ID'];
+		
+		if ($iblock_id === null || $name === null || $page === null || $page_size === null) die();
+		
+		$items = array();
+		
+		$allowed_fields_iblock = array(
+			'ID',
+			'IBLOCK_ID',
+			'NAME',
+			'PREVIEW_PICTURE',
+			'DETAIL_PAGE_URL',
+		);
+		if (count($GLOBALS['ION']['SEARCH_ALLOWED_FIELDS_IBLOCK']) > 0) {
+			$allowed_fields_iblock = array_merge(
+				$GLOBALS['ION']['SEARCH_ALLOWED_FIELDS_IBLOCK'],
+				$allowed_fields_iblock
+			);
+		}
+		
+		$db_list = \CIBlockElement::GetList(
+			array(
+				'SORT' => 'ASC',
+				'ID' => 'ASC'
+			),
+			array(
+				'IBLOCK_ID' => $iblock_id,
+				'%NAME' => $name
+			),
+			false,
+			array(
+				'nPageSize' => $page_size,
+				'iNumPage' => $page
+			),
+			$allowed_fields_iblock
+		);
+		while ($db_el = $db_list->GetNext()) {
+			$items[] = $db_el;
+		}
+		
+		return $items;
 	}
 }
