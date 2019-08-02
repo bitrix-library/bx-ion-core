@@ -35,6 +35,7 @@ class Ion {
 	 * @return mixed
 	 */
 	public static function getInstance() {
+		
 		if (static::$instance === null) {
 			static::$instance = new static();
 		}
@@ -42,137 +43,140 @@ class Ion {
 	}
 	
 	private function __construct() {
+		
 		$this->context = Application::getInstance()->getContext();
 		$this->request = $this->context->getRequest();
 		$this->module_absolute_path = str_replace("\\", "/", dirname(__DIR__ . '\\..\\'));
 		$this->module_relative_path = str_replace($_SERVER['DOCUMENT_ROOT'], '', $this->module_absolute_path);
+		
+		$GLOBALS['ION']['SEARCH_IBLOCK_ID'] = null;
+		$GLOBALS['ION']['BASKET_ALLOWED_FIELDS_IBLOCK'] = null;
+		$GLOBALS['ION']['DENY_GROUPS_IDS'] = null;
+		$GLOBALS['ION']['ORDER_ALLOWED_FIELDS'] = null;
+		$GLOBALS['ION']['SEARCH_ALLOWED_FIELDS_IBLOCK'] = null;
+		$GLOBALS['ION']['SEARCH_IBLOCK_ID'] = null;
 	}
 	
 	public static function connectOnProlog() {
+		
 		$instance = Ion::getInstance();
 		Asset::getInstance()->addJs($instance->module_relative_path . '/js/Util.js');
 	}
 	
 	public static function connectOnAfterEpilog() {
+		
 		$instance = Ion::getInstance();
 		$instance->registerRequestHandlers();
 	}
 	
 	public function registerRequestHandlers() {
-		// <HANDLER> : get_ion_status
-		if ($this->request['action'] == 'get_ion_status') {
-			$GLOBALS['APPLICATION']->RestartBuffer();
-			
-			$ion = $this->getIonStatus();
-			
-			echo json_encode($ion);
-		}
-		// </HANDLER>
 		
-		// <HANDLER> : add_product_to_basket
-		if ($this->request['action'] == 'add_product_to_basket') {
-			$GLOBALS['APPLICATION']->RestartBuffer();
+		switch ($this->request['action']) {
+			case 'get_ion_status':
+				$GLOBALS['APPLICATION']->RestartBuffer();
+				
+				$ion = $this->getIonStatus();
+				
+				echo json_encode($ion);
+				
+				break;
 			
-			$product_id = intval($this->request['product_id']);
-			$quantity = intval($this->request['quantity']);
-			
-			$count = $this->addProductToBasket($product_id, $quantity);
-			
-			echo json_encode($count);
+			case 'add_product_to_basket':
+				$GLOBALS['APPLICATION']->RestartBuffer();
+				
+				$product_id = intval($this->request['product_id']);
+				$quantity = intval($this->request['quantity']);
+				
+				$count = $this->addProductToBasket($product_id, $quantity);
+				
+				echo json_encode($count);
+				
+				break;
+				
+			case 'change_product_quantity_in_basket':
+				$GLOBALS['APPLICATION']->RestartBuffer();
+				
+				$product_id = intval($this->request['product_id']);
+				$quantity = intval($this->request['quantity']);
+				
+				$msg = $this->changeProductQuantityInBasket($product_id, $quantity);
+				
+				echo json_encode($msg);
+				
+				break;
+				
+			case 'remove_product_from_basket':
+				$GLOBALS['APPLICATION']->RestartBuffer();
+				
+				$product_id = intval($this->request['product_id']);
+				
+				$msg = $this->removeProductFromBasket($product_id);
+				
+				echo json_encode($msg);
+				
+				break;
+				
+			case 'get_items_from_basket':
+				$GLOBALS['APPLICATION']->RestartBuffer();
+				
+				$items = $this->getItemsFromBasket();
+				
+				echo json_encode($items);
+				
+				break;
+				
+			case 'get_basket_info':
+				$GLOBALS['APPLICATION']->RestartBuffer();
+				
+				$info = $this->getBasketInfo();
+				
+				echo json_encode($info);
+				
+				break;
+				
+			case 'get_currency_format':
+				$GLOBALS['APPLICATION']->RestartBuffer();
+				
+				$price = floatval($this->request['price']);
+				
+				$msg = $this->getCurrencyFormat($price);
+				
+				echo json_encode($msg);
+				
+				break;
+				
+			case 'get_order_form_groups':
+				$GLOBALS['APPLICATION']->RestartBuffer();
+				
+				$groups = $this->getOrderFormGroups();
+				
+				echo json_encode($groups);
+				
+				break;
+				
+			case 'order_make_order':
+				$GLOBALS['APPLICATION']->RestartBuffer();
+				
+				$delivery_service_id = intval($this->request["delivery_service_id"]);
+				$pay_system_id = intval($this->request["pay_system_id"]);
+				$person_type_id = intval($this->request["person_type_id"]);
+				$values = Util::mapToArray(json_decode($this->request["values"]));
+				
+				$order_id = $this->orderMakeOrder($pay_system_id, $delivery_service_id, $person_type_id, $values);
+				
+				echo json_encode($order_id);
+				
+				break;
+				
+			case 'search_items_by_name':
+				$GLOBALS['APPLICATION']->RestartBuffer();
+				
+				$items = $this->searchItemsByName($this->request["name"], $this->request["page"]);
+				
+				echo json_encode($items);
+				
+				break;
 		}
-		// </HANDLER>
-		
-		// <HANDLER> : change_product_quantity_in_basket
-		if ($this->request['action'] == 'change_product_quantity_in_basket') {
-			$GLOBALS['APPLICATION']->RestartBuffer();
-			
-			$product_id = intval($this->request['product_id']);
-			$quantity = intval($this->request['quantity']);
-			
-			$msg = $this->changeProductQuantityInBasket($product_id, $quantity);
-			
-			echo json_encode($msg);
-		}
-		// </HANDLER>
-		
-		// <HANDLER> : remove_product_from_basket
-		if ($this->request['action'] == 'remove_product_from_basket') {
-			$GLOBALS['APPLICATION']->RestartBuffer();
-			
-			$product_id = intval($this->request['product_id']);
-			
-			$msg = $this->removeProductFromBasket($product_id);
-			
-			echo json_encode($msg);
-		}
-		// </HANDLER>
-		
-		// <HANDLER> : get_items_from_basket
-		if ($this->request['action'] == 'get_items_from_basket') {
-			$GLOBALS['APPLICATION']->RestartBuffer();
-			
-			$items = $this->getItemsFromBasket();
-			
-			echo json_encode($items);
-		}
-		// </HANDLER>
-		
-		// <HANDLER> : get_basket_info
-		if ($this->request['action'] == 'get_basket_info') {
-			$GLOBALS['APPLICATION']->RestartBuffer();
-			
-			$info = $this->getBasketInfo();
-			
-			echo json_encode($info);
-		}
-		// </HANDLER>
-		
-		// <HANDLER> : get_currency_format
-		if ($this->request['action'] == 'get_currency_format') {
-			$GLOBALS['APPLICATION']->RestartBuffer();
-			
-			$price = floatval($this->request['price']);
-			
-			$msg = $this->getCurrencyFormat($price);
-			
-			echo json_encode($msg);
-		}
-		// </HANDLER>
-		
-		// <HANDLER> : get_order_form_groups
-		if ($this->request['action'] == 'get_order_form_groups') {
-			$GLOBALS['APPLICATION']->RestartBuffer();
-			
-			$groups = $this->getOrderFormGroups();
-			
-			echo json_encode($groups);
-		}
-		// </HANDLER>
-		
-		// <HANDLER> : order_make_order
-		if ($this->request['action'] == 'order_make_order') {
-			$GLOBALS['APPLICATION']->RestartBuffer();
-			
-			$delivery_service_id = intval($this->request["delivery_service_id"]);
-			$pay_system_id = intval($this->request["pay_system_id"]);
-			$person_type_id = intval($this->request["person_type_id"]);
-			$values = Util::mapToArray(json_decode($this->request["values"]));
-			
-			$order_id = $this->orderMakeOrder($pay_system_id, $delivery_service_id, $person_type_id, $values);
-			
-			echo json_encode($order_id);
-		}
-		// </HANDLER>
-		
-		// <HANDLER> : search_items_by_name
-		if ($this->request['action'] == 'search_items_by_name') {
-			$GLOBALS['APPLICATION']->RestartBuffer();
-			
-			$items = $this->searchItemsByName($this->request["name"], $this->request["page"]);
-			
-			echo json_encode($items);
-		}
-		// </HANDLER>
 	}
 	
 	/**
@@ -192,11 +196,20 @@ class Ion {
 	 * @param $product_id
 	 * @param $quantity
 	 * @return int
+	 * @throws Main\ArgumentException
+	 * @throws Main\ArgumentNullException
+	 * @throws Main\ArgumentOutOfRangeException
+	 * @throws Main\ArgumentTypeException
+	 * @throws Main\LoaderException
+	 * @throws Main\NotImplementedException
+	 * @throws Main\NotSupportedException
 	 */
 	public function addProductToBasket($product_id, $quantity) {
-		if (!Loader::includeModule('sale')) die();
 		
-		if(!$product_id || !$quantity) die();
+		if(!$product_id
+			|| !$quantity
+			|| !Loader::includeModule('sale')
+		) die();
 		
 		$basket = Basket::loadItemsForFUser(Fuser::getId(), $this->context->getSite());
 		
@@ -230,13 +243,22 @@ class Ion {
 	 * @param $product_id
 	 * @param $quantity
 	 * @return mixed
+	 * @throws Main\ArgumentException
+	 * @throws Main\ArgumentNullException
+	 * @throws Main\ArgumentOutOfRangeException
+	 * @throws Main\ArgumentTypeException
+	 * @throws Main\LoaderException
+	 * @throws Main\NotImplementedException
+	 * @throws Main\NotSupportedException
 	 */
 	public function changeProductQuantityInBasket($product_id, $quantity) {
-		if (!Loader::includeModule('sale')) die();
 		
 		$msg['status'] = false;
 		
-		if(!$product_id || !$quantity) die();
+		if(!$product_id
+			|| !$quantity
+			|| !Loader::includeModule('sale')
+		) die();
 		
 		$basket = Basket::loadItemsForFUser(Fuser::getId(), $this->context->getSite());
 		
@@ -273,13 +295,18 @@ class Ion {
 	/**
 	 * @param $product_id
 	 * @return mixed
+	 * @throws Main\ArgumentException
+	 * @throws Main\ArgumentNullException
+	 * @throws Main\ArgumentOutOfRangeException
+	 * @throws Main\LoaderException
+	 * @throws Main\NotImplementedException
+	 * @throws Main\ObjectNotFoundException
 	 */
 	public function removeProductFromBasket($product_id) {
-		if (!Loader::includeModule('sale')) die();
 		
 		$msg['status'] = false;
 		
-		if(!$product_id) die();
+		if(!$product_id || !Loader::includeModule('sale')) die();
 		
 		$basket = Basket::loadItemsForFUser(Fuser::getId(), $this->context->getSite());
 		
@@ -296,10 +323,15 @@ class Ion {
 	
 	/**
 	 * @return array
+	 * @throws Main\ArgumentNullException
+	 * @throws Main\InvalidOperationException
+	 * @throws Main\LoaderException
 	 */
 	public function getItemsFromBasket() {
-		if (!Loader::includeModule('sale')) die();
-		if (!Loader::includeModule('iblock')) die();
+		
+		if (!Loader::includeModule('sale')
+			|| !Loader::includeModule('iblock')
+		) die();
 		
 		$items = array();
 		
@@ -308,8 +340,10 @@ class Ion {
 		// <DISCOUNTS> : apply
 		$discounts_context = new Discount\Context\Fuser(Fuser::getId());
 		$discounts = Discount::buildFromBasket($basket, $discounts_context);
-		$result = $discounts->calculate()->getData();
-		$basket->applyDiscount($result['BASKET_ITEMS']);
+		if ($discounts !== null) {
+			$result = $discounts->calculate()->getData();
+			$basket->applyDiscount($result['BASKET_ITEMS']);
+		}
 		// </DISCOUNTS>
 		
 		$basket_items = $basket->getBasketItems();
@@ -369,10 +403,15 @@ class Ion {
 	
 	/**
 	 * @return array
+	 * @throws Main\ArgumentNullException
+	 * @throws Main\InvalidOperationException
+	 * @throws Main\LoaderException
 	 */
 	public function getBasketInfo() {
-		if (!Loader::includeModule('sale')) die();
-		if (!Loader::includeModule('iblock')) die();
+		
+		if (!Loader::includeModule('sale')
+			|| !Loader::includeModule('iblock')
+		) die();
 		
 		$info = array();
 		
@@ -381,8 +420,10 @@ class Ion {
 		// <DISCOUNTS> : apply
 		$discounts_context = new Discount\Context\Fuser(Fuser::getId());
 		$discounts = Discount::buildFromBasket($basket, $discounts_context);
-		$result = $discounts->calculate()->getData();
-		$basket->applyDiscount($result['BASKET_ITEMS']);
+		if ($discounts !== null) {
+			$result = $discounts->calculate()->getData();
+			$basket->applyDiscount($result['BASKET_ITEMS']);
+		}
 		// </DISCOUNTS>
 		
 		$info['PRICE'] = $basket->getPrice();
@@ -402,14 +443,14 @@ class Ion {
 	 * @param $price
 	 * @param null $currency
 	 * @return array
+	 * @throws Main\LoaderException
 	 */
 	public function getCurrencyFormat($price, $currency = null) {
-		if (!Loader::includeModule('sale')) die();
 		
 		$msg = array();
 		$msg['status'] = false;
 		
-		if (!$price) die();
+		if (!$price || !Loader::includeModule('sale')) die();
 		
 		if(!$currency) {
 			$currency = \CCurrency::GetBaseCurrency();
@@ -423,8 +464,11 @@ class Ion {
 	
 	/**
 	 * @return array
+	 * @throws Main\ArgumentException
+	 * @throws Main\LoaderException
 	 */
 	public function getOrderFormGroups() {
+		
 		if (!Loader::includeModule('sale')) die();
 		
 		// <PROPS>
@@ -513,11 +557,25 @@ class Ion {
 	 * @param $person_type_id
 	 * @param $values
 	 * @return mixed
+	 * @throws Main\ArgumentException
+	 * @throws Main\ArgumentNullException
+	 * @throws Main\ArgumentOutOfRangeException
+	 * @throws Main\ArgumentTypeException
+	 * @throws Main\LoaderException
+	 * @throws Main\NotImplementedException
+	 * @throws Main\NotSupportedException
+	 * @throws Main\ObjectException
+	 * @throws Main\ObjectNotFoundException
+	 * @throws Main\SystemException
 	 */
 	public function orderMakeOrder($pay_system_id, $delivery_service_id, $person_type_id, $values) {
-		if (!Loader::includeModule('sale')) die();
 		
-		if (!$pay_system_id || !$person_type_id || !$values || !$delivery_service_id) die();
+		if (!$pay_system_id
+			|| !$person_type_id
+			|| !$values
+			|| !$delivery_service_id
+			|| !Loader::includeModule('sale')
+		) die();
 		
 		// <USER>
 		$user_id = \CUser::GetID();
@@ -608,12 +666,18 @@ class Ion {
 	 * @param int $page
 	 * @param int $page_size
 	 * @return array
+	 * @throws Main\LoaderException
 	 */
 	public function searchItemsByName($name, $page = 1, $page_size = 10) {
 		
 		$iblock_id = $GLOBALS['ION']['SEARCH_IBLOCK_ID'];
 		
-		if ($iblock_id === null || $name === null || $page === null || $page_size === null) die();
+		if ($iblock_id === null
+			|| $name === null
+			|| $page === null
+			|| $page_size === null
+			|| !Loader::includeModule('iblock')
+		) die();
 		
 		$items = array();
 		
@@ -623,6 +687,7 @@ class Ion {
 			'NAME',
 			'PREVIEW_PICTURE',
 			'DETAIL_PAGE_URL',
+			'PREVIEW_TEXT'
 		);
 		if (count($GLOBALS['ION']['SEARCH_ALLOWED_FIELDS_IBLOCK']) > 0) {
 			$allowed_fields_iblock = array_merge(
@@ -648,6 +713,7 @@ class Ion {
 			$allowed_fields_iblock
 		);
 		while ($db_el = $db_list->GetNext()) {
+			$db_el['PREVIEW_PICTURE'] = \CFile::ResizeImageGet($db_el["PREVIEW_PICTURE"], ['width' => 500, 'height' => 500], BX_RESIZE_IMAGE_PROPORTIONAL, true);
 			$items[] = $db_el;
 		}
 		
