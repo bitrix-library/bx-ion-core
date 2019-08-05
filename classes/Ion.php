@@ -87,9 +87,9 @@ class Ion {
 				$product_id = intval($this->request['product_id']);
 				$quantity = intval($this->request['quantity']);
 				
-				$count = $this->addProductToBasket($product_id, $quantity);
+				$data = $this->addProductToBasket($product_id, $quantity);
 				
-				echo json_encode($count);
+				echo json_encode($data);
 				
 				break;
 				
@@ -195,7 +195,7 @@ class Ion {
 	/**
 	 * @param $product_id
 	 * @param $quantity
-	 * @return int
+	 * @return mixed
 	 * @throws Main\ArgumentException
 	 * @throws Main\ArgumentNullException
 	 * @throws Main\ArgumentOutOfRangeException
@@ -234,9 +234,9 @@ class Ion {
 			$basket->save();
 		}
 		
-		$count = count($basket->getListOfFormatText());
+		$info = $this->getBasketInfo();
 		
-		return $count;
+		return $info;
 	}
 	
 	/**
