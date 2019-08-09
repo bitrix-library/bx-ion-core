@@ -203,6 +203,7 @@ class Ion {
 	 * @throws Main\LoaderException
 	 * @throws Main\NotImplementedException
 	 * @throws Main\NotSupportedException
+	 * @throws Main\InvalidOperationException
 	 */
 	public function addProductToBasket($product_id, $quantity) {
 		
@@ -679,7 +680,10 @@ class Ion {
 			|| !Loader::includeModule('iblock')
 		) die();
 		
-		$items = array();
+		$data = array(
+			'ITEMS' => array(),
+			'COUNT' => '0'
+		);
 		
 		$allowed_fields_iblock = array(
 			'ID',
@@ -714,9 +718,22 @@ class Ion {
 		);
 		while ($db_el = $db_list->GetNext()) {
 			$db_el['PREVIEW_PICTURE'] = \CFile::ResizeImageGet($db_el["PREVIEW_PICTURE"], ['width' => 500, 'height' => 500], BX_RESIZE_IMAGE_PROPORTIONAL, true);
-			$items[] = $db_el;
+			$data['ITEMS'][] = $db_el;
 		}
+		unset($db_list);
 		
-		return $items;
+		$data['COUNT'] = \CIBlockElement::GetList(
+			array(
+				'SORT' => 'ASC',
+				'ID' => 'ASC'
+			),
+			array(
+				'IBLOCK_ID' => $iblock_id,
+				'%NAME' => $name
+			),
+			array()
+		);
+		
+		return $data;
 	}
 }
