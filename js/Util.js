@@ -38,3 +38,16 @@ let buildGetRequestParams = ((...args) => {
 
     return params_strings.join(symbol_and);
 });
+
+/**
+ *
+ * @type {function(*=): string}
+ * Reload page with new params
+ */
+let reloadPageWithGetParams = (params => {
+
+    return window.location.search = buildGetRequestParams({
+        new_query : params,
+        old_query : window.location.search.substr(1),
+    });
+});
