@@ -6,12 +6,12 @@ use \Bitrix\Main,
 	\Bitrix\Main\Loader,
 	\Bitrix\Main\Application,
 	\Bitrix\Main\Config\Option,
-	\Bitrix\Main\Context,
+	//\Bitrix\Main\Context,
 	\Bitrix\Currency\CurrencyManager,
 	\Bitrix\Main\Page\Asset,
 	\Bitrix\Sale,
 	\Bitrix\Sale\Basket,
-	\Bitrix\Sale\BasketItem,
+	//\Bitrix\Sale\BasketItem,
 	\Bitrix\Sale\Discount,
 	\Bitrix\Sale\Fuser,
 	//\Bitrix\Sale\DiscountCouponsManager,
@@ -92,7 +92,7 @@ class Ion {
 				echo json_encode($data);
 				
 				break;
-				
+			
 			case 'change_product_quantity_in_basket':
 				$GLOBALS['APPLICATION']->RestartBuffer();
 				
@@ -104,7 +104,7 @@ class Ion {
 				echo json_encode($msg);
 				
 				break;
-				
+			
 			case 'remove_product_from_basket':
 				$GLOBALS['APPLICATION']->RestartBuffer();
 				
@@ -115,7 +115,7 @@ class Ion {
 				echo json_encode($msg);
 				
 				break;
-				
+			
 			case 'get_items_from_basket':
 				$GLOBALS['APPLICATION']->RestartBuffer();
 				
@@ -124,7 +124,7 @@ class Ion {
 				echo json_encode($items);
 				
 				break;
-				
+			
 			case 'get_basket_info':
 				$GLOBALS['APPLICATION']->RestartBuffer();
 				
@@ -133,7 +133,7 @@ class Ion {
 				echo json_encode($info);
 				
 				break;
-				
+			
 			case 'get_currency_format':
 				$GLOBALS['APPLICATION']->RestartBuffer();
 				
@@ -144,7 +144,7 @@ class Ion {
 				echo json_encode($msg);
 				
 				break;
-				
+			
 			case 'get_order_form_groups':
 				$GLOBALS['APPLICATION']->RestartBuffer();
 				
@@ -153,7 +153,7 @@ class Ion {
 				echo json_encode($groups);
 				
 				break;
-				
+			
 			case 'order_make_order':
 				$GLOBALS['APPLICATION']->RestartBuffer();
 				
@@ -167,7 +167,7 @@ class Ion {
 				echo json_encode($order_id);
 				
 				break;
-				
+			
 			case 'search_items_by_name':
 				$GLOBALS['APPLICATION']->RestartBuffer();
 				
@@ -639,7 +639,7 @@ class Ion {
 		
 		$order->save();
 		$order_id = $order->GetId();
-		
+
 //		// <MAIL>
 //		$site_email_from = \COption::GetOptionString("main", "email_from");
 //		$user_email = $values['EMAIL'];
@@ -735,5 +735,95 @@ class Ion {
 		);
 		
 		return $data;
+	}
+	
+	/**
+	 * @param int $count
+	 * @return array
+	 * @throws Main\ArgumentException
+	 * @throws Main\ObjectPropertyException
+	 * @throws Main\SystemException
+	 * @throws Main\LoaderException
+	 */
+	public function getViewedProducts($count = 10) {
+		
+		if (!Loader::includeModule('catalog')) die();
+		
+		$products = array();
+		
+		$db_list = \Bitrix\Catalog\CatalogViewedProductTable::getList(
+			array(
+				'limit'     => $count,
+				'select'    => array('*'),
+				'filter'    => array(
+					'FUSER_ID' => Fuser::getId(),
+					'SITE_ID' => $this->context->getSite()
+				),
+				'order'     => array('DATE_VISIT' => 'DESC')
+			)
+		);
+		while ($db_el = $db_list->fetch()){
+			$products[] = $db_el;
+		}
+		
+		return $products;
+	}
+	
+	/**
+	 * @param $product_id
+	 * @param $element_id
+	 * @param int $view_count
+	 * @return Main\ORM\Data\AddResult|Main\ORM\Data\UpdateResult|null
+	 * @throws Main\ArgumentException
+	 * @throws Main\LoaderException
+	 * @throws Main\ObjectPropertyException
+	 * @throws Main\SystemException
+	 */
+	public function addProductViewCount($product_id, $element_id, $view_count = 1) {
+		
+		if ($product_id === null
+			|| $element_id === null
+			|| $view_count === null
+			|| !Loader::includeModule('catalog')
+		) die();
+		
+		$result = null;
+		
+		$db_list = \Bitrix\Catalog\CatalogViewedProductTable::getList(
+			array(
+				'limit'     => '1',
+				'select'    => array('*'),
+				'filter'    => array(
+					'PRODUCT_ID' => $product_id,
+					'ELEMENT_ID' => $element_id,
+					'FUSER_ID' => Fuser::getId(),
+					'SITE_ID' => $this->context->getSite()
+				)
+			)
+		);
+		if ($db_el = $db_list->fetch()){
+			$result = \Bitrix\Catalog\CatalogViewedProductTable::update(
+				$db_el['ID'],
+				array(
+					'PRODUCT_ID' => $product_id,
+					'ELEMENT_ID' => $element_id,
+					'VIEW_COUNT' => $db_el['VIEW_COUNT'] + $view_count,
+					'FUSER_ID' => Fuser::getId(),
+					'SITE_ID' => $this->context->getSite()
+				)
+			);
+		} else {
+			$result = \Bitrix\Catalog\CatalogViewedProductTable::add(
+				array(
+					'PRODUCT_ID' => $product_id,
+					'ELEMENT_ID' => $element_id,
+					'VIEW_COUNT' => $view_count,
+					'FUSER_ID' => Fuser::getId(),
+					'SITE_ID' => $this->context->getSite()
+				)
+			);
+		}
+		
+		return $result;
 	}
 }
