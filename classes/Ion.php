@@ -756,8 +756,8 @@ class Ion {
 				'limit'     => $count,
 				'select'    => array('*'),
 				'filter'    => array(
-					'FUSER_ID' => Fuser::getId(),
-					'SITE_ID' => $this->context->getSite()
+					'FUSER_ID'  => Fuser::getId(),
+					'SITE_ID'   => $this->context->getSite()
 				),
 				'order'     => array('DATE_VISIT' => 'DESC')
 			)
@@ -794,10 +794,10 @@ class Ion {
 				'limit'     => '1',
 				'select'    => array('*'),
 				'filter'    => array(
-					'PRODUCT_ID' => $product_id,
-					'ELEMENT_ID' => $element_id,
-					'FUSER_ID' => Fuser::getId(),
-					'SITE_ID' => $this->context->getSite()
+					'PRODUCT_ID'    => $product_id,
+					'ELEMENT_ID'    => $element_id,
+					'FUSER_ID'      => Fuser::getId(),
+					'SITE_ID'       => $this->context->getSite()
 				)
 			)
 		);
@@ -805,21 +805,18 @@ class Ion {
 			$result = \Bitrix\Catalog\CatalogViewedProductTable::update(
 				$db_el['ID'],
 				array(
-					'PRODUCT_ID' => $product_id,
-					'ELEMENT_ID' => $element_id,
-					'VIEW_COUNT' => $db_el['VIEW_COUNT'] + $view_count,
-					'FUSER_ID' => Fuser::getId(),
-					'SITE_ID' => $this->context->getSite()
+					'VIEW_COUNT'    => $db_el['VIEW_COUNT'] + $view_count,
+					'DATE_VISIT'    => \Bitrix\Main\Type\DateTime::createFromPhp(new \DateTime()),
 				)
 			);
 		} else {
 			$result = \Bitrix\Catalog\CatalogViewedProductTable::add(
 				array(
-					'PRODUCT_ID' => $product_id,
-					'ELEMENT_ID' => $element_id,
-					'VIEW_COUNT' => $view_count,
-					'FUSER_ID' => Fuser::getId(),
-					'SITE_ID' => $this->context->getSite()
+					'PRODUCT_ID'    => $product_id,
+					'ELEMENT_ID'    => $element_id,
+					'VIEW_COUNT'    => $view_count,
+					'FUSER_ID'      => Fuser::getId(),
+					'SITE_ID'       => $this->context->getSite()
 				)
 			);
 		}
