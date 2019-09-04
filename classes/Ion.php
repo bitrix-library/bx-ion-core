@@ -92,7 +92,7 @@ class Ion {
 				echo json_encode($data);
 				
 				break;
-			
+				
 			case 'change_product_quantity_in_basket':
 				$GLOBALS['APPLICATION']->RestartBuffer();
 				
@@ -104,7 +104,7 @@ class Ion {
 				echo json_encode($msg);
 				
 				break;
-			
+				
 			case 'remove_product_from_basket':
 				$GLOBALS['APPLICATION']->RestartBuffer();
 				
@@ -115,7 +115,7 @@ class Ion {
 				echo json_encode($msg);
 				
 				break;
-			
+				
 			case 'get_items_from_basket':
 				$GLOBALS['APPLICATION']->RestartBuffer();
 				
@@ -124,7 +124,7 @@ class Ion {
 				echo json_encode($items);
 				
 				break;
-			
+				
 			case 'get_basket_info':
 				$GLOBALS['APPLICATION']->RestartBuffer();
 				
@@ -133,7 +133,7 @@ class Ion {
 				echo json_encode($info);
 				
 				break;
-			
+				
 			case 'get_currency_format':
 				$GLOBALS['APPLICATION']->RestartBuffer();
 				
@@ -144,7 +144,7 @@ class Ion {
 				echo json_encode($msg);
 				
 				break;
-			
+				
 			case 'get_order_form_groups':
 				$GLOBALS['APPLICATION']->RestartBuffer();
 				
@@ -153,7 +153,7 @@ class Ion {
 				echo json_encode($groups);
 				
 				break;
-			
+				
 			case 'order_make_order':
 				$GLOBALS['APPLICATION']->RestartBuffer();
 				
@@ -167,7 +167,7 @@ class Ion {
 				echo json_encode($order_id);
 				
 				break;
-			
+				
 			case 'search_items_by_name':
 				$GLOBALS['APPLICATION']->RestartBuffer();
 				
@@ -639,7 +639,7 @@ class Ion {
 		
 		$order->save();
 		$order_id = $order->GetId();
-
+		
 //		// <MAIL>
 //		$site_email_from = \COption::GetOptionString("main", "email_from");
 //		$user_email = $values['EMAIL'];
