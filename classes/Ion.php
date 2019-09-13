@@ -823,4 +823,24 @@ class Ion {
 		
 		return $result;
 	}
+	
+	/**
+	 * @return array
+	 * @throws Main\LoaderException
+	 */
+	public function removeProductsFromBasket() {
+		if (!Loader::includeModule('sale'))     die();
+		if (!Loader::includeModule('catalog'))  die();
+		
+		$result = \CSaleBasket::DeleteAll(Fuser::getId());
+		
+//		$result = array();
+//
+//		$basket = Basket::loadItemsForFUser(Fuser::getId(), $this->context->getSite());
+//		foreach ($basket->getBasketItems() as $item) {
+//			$result[] = $this->removeProductFromBasket($item->getId());
+//		}
+		
+		return $result;
+	}
 }
