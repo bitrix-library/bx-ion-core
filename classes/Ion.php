@@ -332,6 +332,7 @@ class Ion {
 		
 		if (!Loader::includeModule('sale')
 			|| !Loader::includeModule('iblock')
+			|| !Loader::includeModule('sale')
 		) die();
 		
 		$items = array();
@@ -356,10 +357,18 @@ class Ion {
 			$item['SUM_PRICE'] = $obj->getFinalPrice();
 			$item['CURRENCY'] = $obj->getCurrency();
 			$item['QUANTITY'] = $obj->getQuantity();
-			$item['WEIGHT'] = $obj->getWeight();
 			$item['FORMATTED_PRICE'] = \CCurrencyLang::CurrencyFormat($item['PRICE'], $item['CURRENCY']);
 			$item['SUM_FORMATTED_PRICE'] = \CCurrencyLang::CurrencyFormat($item['SUM_PRICE'], $item['CURRENCY']);
-			
+
+			// Получение размеров продукта
+            $product = \CCatalogProduct::GetByID($item['PRODUCT_ID']);
+            $item['WEIGHT'] = $product['WEIGHT'];
+            $item['WIDTH'] = $product['WIDTH'];
+            $item['LENGTH'] = $product['LENGTH'];
+            $item['HEIGHT'] = $product['HEIGHT'];
+            $item['STOCK_QUANTITY'] = $product['QUANTITY'];
+            $item['STOCK_QUANTITY_RESERVED'] = $product['QUANTITY_RESERVED'];
+
 			// Получение IBLOCK_ID элемента с которым связан продукт
 			$db_iblock_list = \CIBlockElement::GetById($item['PRODUCT_ID']);
 			if ($db_iblock_el = $db_iblock_list->GetNext()) {
