@@ -329,19 +329,23 @@ class Ion {
 	 * @throws Main\InvalidOperationException
 	 * @throws Main\LoaderException
 	 */
-	public function getItemsFromBasket() {
+	public function getItemsFromBasket($fuser = null) {
 
 		if (!Loader::includeModule('sale')
 			|| !Loader::includeModule('iblock')
 			|| !Loader::includeModule('sale')
 		) die();
 
+		if ($fuser === null) {
+		    $fuser = Fuser::getId();
+        }
+
 		$items = array();
 
-		$basket = Basket::loadItemsForFUser(Fuser::getId(), $this->context->getSite());
+		$basket = Basket::loadItemsForFUser($fuser, $this->context->getSite());
 
 		// <DISCOUNTS> : apply
-		$discounts_context = new Discount\Context\Fuser(Fuser::getId());
+		$discounts_context = new Discount\Context\Fuser($fuser);
 		$discounts = Discount::buildFromBasket($basket, $discounts_context);
 		if ($discounts !== null) {
 			$result = $discounts->calculate()->getData();
