@@ -488,7 +488,7 @@ class Ion {
 
 		// <PROPS>
 		$props = array();
-		$db_list = \CSaleOrderProps::GetList(['SORT' => 'ASC', 'ID' => 'ASC'], ['ACTIVE' => 'Y'], false, false, ['ID', 'CODE', 'PROPS_GROUP_ID', 'NAME', 'REQUIED']);
+		$db_list = \CSaleOrderProps::GetList(['SORT' => 'ASC', 'ID' => 'ASC'], ['ACTIVE' => 'Y'], false, false, ['ID', 'CODE', 'PROPS_GROUP_ID', 'NAME', 'REQUIED', 'TYPE']);
 		while ($db_el = $db_list->GetNext()) {
 			$props[] = $db_el;
 		}
@@ -599,7 +599,7 @@ class Ion {
 		}
 		// </USER>
 
-		$allowed_fields = ['NAME', 'LASTNAME', 'EMAIL', 'PHONE'];
+		$allowed_fields = ['NAME', 'LASTNAME', 'EMAIL', 'PHONE', 'COMMENT'];
 		if (count($GLOBALS['ION']['ORDER_ALLOWED_FIELDS']) > 0) {
 			$allowed_fields = array_merge($GLOBALS['ION']['ORDER_ALLOWED_FIELDS'], $allowed_fields);
 		}
@@ -644,6 +644,7 @@ class Ion {
 				$el->setValue($values[$el->getField('CODE')]);
 			}
 		}
+		$order->setField('USER_DESCRIPTION', $values['USER_DESCRIPTION']);
 
 		if ($GLOBALS['ION']['MAKE_ORDER_HANDLER'] instanceof \Closure) {
             $GLOBALS['ION']['MAKE_ORDER_HANDLER']($order);
