@@ -508,7 +508,7 @@ class Ion {
 			$props[] = $service;
 		}
 
-		$delivery_group = ['ID' => 'DELIVERY', 'NAME' => 'DELIVERY', 'SORT' => '100'];
+		$delivery_group = ['ID' => 'DELIVERY', 'NAME' => 'DELIVERY', 'SORT' => '200'];
 		// </DELIVERY>
 
 		// <PAYMENT>
@@ -532,12 +532,12 @@ class Ion {
 			$props[] = $system;
 		}
 
-		$payment_group = ['ID' => 'PAYMENT', 'NAME' => 'PAYMENT', 'SORT' => '200'];
+		$payment_group = ['ID' => 'PAYMENT', 'NAME' => 'PAYMENT', 'SORT' => '100'];
 		// </PAYMENT>
 
 		// <GROUPS>
 		$groups = array();
-		$db_list = \CSaleOrderPropsGroup::GetList(['SORT' => 'ASC', 'ID' => 'ASC'], ['ACTIVE' => 'Y', '!ID' => $GLOBALS['ION']['DENY_GROUPS_IDS']]);
+		$db_list = \CSaleOrderPropsGroup::GetList(['SORT' => 'ASC'], ['ACTIVE' => 'Y', '!ID' => $GLOBALS['ION']['DENY_GROUPS_IDS']]);
 		while ($db_el = $db_list->GetNext()) {
 			$groups[] = $db_el;
 		}
