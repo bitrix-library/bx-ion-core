@@ -701,7 +701,8 @@ class Ion {
 			),
 			array(
 				'IBLOCK_ID' => $iblock_id,
-				'%NAME' => $name
+				'%NAME' => $name,
+				'ACTIVE' => 'Y'
 			),
 			false,
 			array(
