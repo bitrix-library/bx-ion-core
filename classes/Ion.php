@@ -78,7 +78,7 @@ class Ion {
 
 				$ion = $this->getIonStatus();
 
-				echo json_encode($ion);
+				echo str_replace('&quot;', '\"', json_encode($ion));
 
 				break;
 
@@ -90,7 +90,7 @@ class Ion {
 
 				$data = $this->addProductToBasket($product_id, $quantity);
 
-				echo json_encode($data);
+				echo str_replace('&quot;', '\"', json_encode($msg));
 
 				break;
 
@@ -102,7 +102,7 @@ class Ion {
 
 				$msg = $this->changeProductQuantityInBasket($product_id, $quantity);
 
-				echo json_encode($msg);
+				echo str_replace('&quot;', '\"', json_encode($msg));
 
 				break;
 
@@ -113,7 +113,7 @@ class Ion {
 
 				$msg = $this->removeProductFromBasket($product_id);
 
-				echo json_encode($msg);
+				echo str_replace('&quot;', '\"', json_encode($msg));
 
 				break;
 
@@ -122,7 +122,7 @@ class Ion {
 
 				$items = $this->getItemsFromBasket();
 
-				echo json_encode($items);
+				echo str_replace('&quot;', '\"', json_encode($items));
 
 				break;
 
@@ -131,7 +131,7 @@ class Ion {
 
 				$info = $this->getBasketInfo();
 
-				echo json_encode($info);
+				echo str_replace('&quot;', '\"', json_encode($info));
 
 				break;
 
@@ -142,7 +142,7 @@ class Ion {
 
 				$msg = $this->getCurrencyFormat($price);
 
-				echo json_encode($msg);
+				echo str_replace('&quot;', '\"', json_encode($msg));
 
 				break;
 
@@ -151,7 +151,7 @@ class Ion {
 
 				$groups = $this->getOrderFormGroups();
 
-				echo json_encode($groups);
+				echo str_replace('&quot;', '\"', json_encode($groups));
 
 				break;
 
@@ -165,7 +165,7 @@ class Ion {
 
 				$order_id = $this->orderMakeOrder($pay_system_id, $delivery_service_id, $person_type_id, $values);
 
-				echo json_encode($order_id);
+				echo str_replace('&quot;', '\"', json_encode($order_id));
 
 				break;
 
@@ -174,7 +174,7 @@ class Ion {
 
 				$items = $this->searchItemsByName($this->request["name"], $this->request["page"]);
 
-				echo json_encode($items);
+				echo str_replace('&quot;', '\"', json_encode($items));
 
 				break;
 		}
