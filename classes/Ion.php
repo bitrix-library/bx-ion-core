@@ -90,7 +90,7 @@ class Ion {
 
 				$data = $this->addProductToBasket($product_id, $quantity);
 
-				echo str_replace('&quot;', '\"', json_encode($msg));
+				echo str_replace('&quot;', '\"', json_encode($data));
 
 				break;
 
