@@ -359,10 +359,12 @@ class Ion {
 			$item = array();
 			$item['PRODUCT_ID'] = $obj->getProductId();
 			$item['PRICE'] = $obj->getPrice();
+			$item['BASE_PRICE'] = $obj->getBasePrice();
 			$item['SUM_PRICE'] = $obj->getFinalPrice();
 			$item['CURRENCY'] = $obj->getCurrency();
 			$item['QUANTITY'] = $obj->getQuantity();
 			$item['FORMATTED_PRICE'] = \CCurrencyLang::CurrencyFormat($item['PRICE'], $item['CURRENCY']);
+			$item['FORMATTED_BASE_PRICE'] = \CCurrencyLang::CurrencyFormat($item['BASE_PRICE'], $item['CURRENCY']);
 			$item['SUM_FORMATTED_PRICE'] = \CCurrencyLang::CurrencyFormat($item['SUM_PRICE'], $item['CURRENCY']);
 
 			// Получение размеров продукта
