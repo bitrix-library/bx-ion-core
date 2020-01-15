@@ -358,14 +358,16 @@ class Ion {
 		foreach ($basket_items as $obj) {
 			$item = array();
 			$item['PRODUCT_ID'] = $obj->getProductId();
+			$item['QUANTITY'] = $obj->getQuantity();
+			$item['CURRENCY'] = $obj->getCurrency();
 			$item['PRICE'] = $obj->getPrice();
 			$item['BASE_PRICE'] = $obj->getBasePrice();
-			$item['SUM_PRICE'] = $obj->getFinalPrice();
-			$item['CURRENCY'] = $obj->getCurrency();
-			$item['QUANTITY'] = $obj->getQuantity();
+			$item['SUM_PRICE'] = $item['PRICE'] * $item['QUANTITY'];
+			$item['SUM_BASE_PRICE'] = $item['BASE_PRICE'] * $item['QUANTITY'];
 			$item['FORMATTED_PRICE'] = \CCurrencyLang::CurrencyFormat($item['PRICE'], $item['CURRENCY']);
 			$item['FORMATTED_BASE_PRICE'] = \CCurrencyLang::CurrencyFormat($item['BASE_PRICE'], $item['CURRENCY']);
 			$item['SUM_FORMATTED_PRICE'] = \CCurrencyLang::CurrencyFormat($item['SUM_PRICE'], $item['CURRENCY']);
+			$item['SUM_FORMATTED_BASE_PRICE'] = \CCurrencyLang::CurrencyFormat($item['SUM_BASE_PRICE'], $item['CURRENCY']);
 
 			// Получение размеров продукта
             $product = \CCatalogProduct::GetByID($item['PRODUCT_ID']);
