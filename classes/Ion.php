@@ -212,7 +212,7 @@ class Ion
 
     public function getClosure($id)
     {
-        if ($GLOBALS['ION']['CLOSURES'][$id] !== null) {
+        if ($GLOBALS['ION']['CLOSURES'][$id] instanceof \Closure) {
             return $GLOBALS['ION']['CLOSURES'][$id]();
         }
 
