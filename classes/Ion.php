@@ -56,6 +56,7 @@ class Ion
         $GLOBALS['ION']['SEARCH_ALLOWED_FIELDS_IBLOCK'] = null;
         $GLOBALS['ION']['SEARCH_IBLOCK_ID'] = null;
         $GLOBALS['ION']['MAKE_ORDER_HANDLER'] = null;
+        $GLOBALS['ION']['CLOSURES'] = null;
     }
 
     public static function connectOnProlog()
@@ -85,6 +86,17 @@ class Ion
 
                 break;
 
+            case 'get_closure':
+                $GLOBALS['APPLICATION']->RestartBuffer();
+
+                $id = (int) $this->request['id'];
+
+                $msg = $this->getClosure($id);
+
+                echo str_replace('&quot;', '\"', json_encode($msg));
+
+                break;
+
             case 'add_product_to_basket':
                 $GLOBALS['APPLICATION']->RestartBuffer();
 
@@ -92,9 +104,9 @@ class Ion
                 $quantity = (int) $this->request['quantity'];
                 $props = $this->request['props'];
 
-                $data = $this->addProductToBasket($product_id, $quantity, $props);
+                $msg = $this->addProductToBasket($product_id, $quantity, $props);
 
-                echo str_replace('&quot;', '\"', json_encode($data));
+                echo str_replace('&quot;', '\"', json_encode($msg));
 
                 break;
 
@@ -196,6 +208,15 @@ class Ion
         ];
 
         return $ion;
+    }
+
+    public function getClosure($id)
+    {
+        if ($GLOBALS['ION']['CLOSURES'][$id] !== null) {
+            return $GLOBALS['ION']['CLOSURES'][$id]();
+        }
+
+        return null;
     }
 
     /**
