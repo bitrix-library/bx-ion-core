@@ -225,11 +225,18 @@ class Ion
      * @param array $props
      * @return mixed
      */
-    public function addProductToBasket($product_id, $quantity, $props = [])
+    public function addProductToBasket($product_id, $quantity, $props)
     {
-
-        if (!$product_id || !$quantity || !Loader::includeModule('sale')) {
+        if (!$product_id || !Loader::includeModule('sale')) {
             die();
+        }
+
+        if ($quantity === null) {
+            $quantity = 1;
+        }
+
+        if ($props === null) {
+            $props = [];
         }
 
         $basket = Basket::loadItemsForFUser(Fuser::getId(), $this->context->getSite());
