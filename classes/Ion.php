@@ -89,7 +89,7 @@ class Ion
             case 'get_closure':
                 $GLOBALS['APPLICATION']->RestartBuffer();
 
-                $id = (int) $this->request['id'];
+                $id = (int)$this->request['id'];
 
                 $msg = $this->getClosure($id);
 
@@ -100,8 +100,8 @@ class Ion
             case 'add_product_to_basket':
                 $GLOBALS['APPLICATION']->RestartBuffer();
 
-                $product_id = (int) $this->request['product_id'];
-                $quantity = (int) $this->request['quantity'];
+                $product_id = (int)$this->request['product_id'];
+                $quantity = (int)$this->request['quantity'];
                 $props = $this->request['props'];
 
                 $msg = $this->addProductToBasket($product_id, $quantity, $props);
@@ -113,8 +113,8 @@ class Ion
             case 'change_product_quantity_in_basket':
                 $GLOBALS['APPLICATION']->RestartBuffer();
 
-                $product_id = (int) $this->request['product_id'];
-                $quantity = (int) $this->request['quantity'];
+                $product_id = (int)$this->request['product_id'];
+                $quantity = (int)$this->request['quantity'];
 
                 $msg = $this->changeProductQuantityInBasket($product_id, $quantity);
 
@@ -125,7 +125,7 @@ class Ion
             case 'remove_product_from_basket':
                 $GLOBALS['APPLICATION']->RestartBuffer();
 
-                $product_id = (int) $this->request['product_id'];
+                $product_id = (int)$this->request['product_id'];
 
                 $msg = $this->removeProductFromBasket($product_id);
 
@@ -154,7 +154,7 @@ class Ion
             case 'get_currency_format':
                 $GLOBALS['APPLICATION']->RestartBuffer();
 
-                $price = (float) $this->request['price'];
+                $price = (float)$this->request['price'];
 
                 $msg = $this->getCurrencyFormat($price);
 
@@ -174,9 +174,9 @@ class Ion
             case 'order_make_order':
                 $GLOBALS['APPLICATION']->RestartBuffer();
 
-                $delivery_service_id = (int) $this->request["delivery_service_id"];
-                $pay_system_id = (int) $this->request["pay_system_id"];
-                $person_type_id = (int) $this->request["person_type_id"];
+                $delivery_service_id = (int)$this->request["delivery_service_id"];
+                $pay_system_id = (int)$this->request["pay_system_id"];
+                $person_type_id = (int)$this->request["person_type_id"];
                 $values = Util::mapToArray(json_decode($this->request["values"], true));
 
                 $order_id = $this->orderMakeOrder($pay_system_id, $delivery_service_id, $person_type_id, $values);
