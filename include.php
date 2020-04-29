@@ -1,5 +1,7 @@
 <?php
 
+require __DIR__.'/vendor/autoload.php';
+
 use Bitrix\Main\Loader;
 
 $arClasses = array(
