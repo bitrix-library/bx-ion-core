@@ -89,7 +89,7 @@ class Ion
             case 'get_closure':
                 $GLOBALS['APPLICATION']->RestartBuffer();
 
-                $id = (int)$this->request['id'];
+                $id = $this->request['id'];
 
                 $msg = $this->getClosure($id);
 
@@ -405,6 +405,9 @@ class Ion
             $item['FORMATTED_BASE_PRICE'] = \CCurrencyLang::CurrencyFormat($item['BASE_PRICE'], $item['CURRENCY']);
             $item['SUM_FORMATTED_PRICE'] = \CCurrencyLang::CurrencyFormat($item['SUM_PRICE'], $item['CURRENCY']);
             $item['SUM_FORMATTED_BASE_PRICE'] = \CCurrencyLang::CurrencyFormat($item['SUM_BASE_PRICE'], $item['CURRENCY']);
+
+            // Получение свойств продукта
+            $item["PROPS"] = $obj->getPropertyCollection()->getPropertyValues();
 
             // Получение размеров продукта
             $product = \CCatalogProduct::GetByID($item['PRODUCT_ID']);
