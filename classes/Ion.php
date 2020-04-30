@@ -126,8 +126,9 @@ class Ion
                 $GLOBALS['APPLICATION']->RestartBuffer();
 
                 $product_id = (int)$this->request['product_id'];
+                $props = $this->request['props'];
 
-                $msg = $this->removeProductFromBasket($product_id);
+                $msg = $this->removeProductFromBasket($product_id, $props);
 
                 echo str_replace('&quot;', '\"', json_encode($msg));
 
@@ -331,6 +332,7 @@ class Ion
 
     /**
      * @param $product_id
+     * @param $props
      * @return mixed
      * @throws Main\ArgumentException
      * @throws Main\ArgumentNullException
@@ -339,16 +341,20 @@ class Ion
      * @throws Main\NotImplementedException
      * @throws Main\ObjectNotFoundException
      */
-    public function removeProductFromBasket($product_id)
+    public function removeProductFromBasket($product_id, $props)
     {
 
         $msg['status'] = false;
 
         if (!$product_id || !Loader::includeModule('sale')) die();
 
+        if ($props === null) {
+            $props = [];
+        }
+
         $basket = Basket::loadItemsForFUser(Fuser::getId(), $this->context->getSite());
 
-        if ($basketItem = $basket->getExistsItem('catalog', $product_id)) {
+        if ($basketItem = $basket->getExistsItem('catalog', $product_id, $props)) {
 
             $basketItem->delete();
             $basket->save();
