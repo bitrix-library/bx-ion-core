@@ -279,38 +279,35 @@ class Ion
     /**
      * @param $product_id
      * @param $quantity
+     * @param $props
      * @return mixed
-     * @throws Main\ArgumentException
-     * @throws Main\ArgumentNullException
-     * @throws Main\ArgumentOutOfRangeException
-     * @throws Main\ArgumentTypeException
-     * @throws Main\LoaderException
-     * @throws Main\NotImplementedException
-     * @throws Main\NotSupportedException
      */
-    public function changeProductQuantityInBasket($product_id, $quantity)
+    public function changeProductQuantityInBasket($product_id, $quantity, $props)
     {
+        if (!$product_id || !Loader::includeModule('sale')) {
+            die();
+        }
+
+        if ($quantity === null) {
+            $quantity = 1;
+        }
+
+        if ($props === null) {
+            $props = [];
+        }
 
         $msg['status'] = false;
 
-        if (!$product_id
-            || !$quantity
-            || !Loader::includeModule('sale')
-        ) die();
-
         $basket = Basket::loadItemsForFUser(Fuser::getId(), $this->context->getSite());
 
-        if ($basketItem = $basket->getExistsItem('catalog', $product_id)) {
-
+        if ($basketItem = $basket->getExistsItem('catalog', $product_id, $props)) {
             // Обновление товара в корзине
             $basketItem->setField('QUANTITY', $quantity);
             $basket->save();
 
             $msg['status'] = true;
             $msg['action'] = 'update';
-
         } else {
-
             // Добавление товара в корзину
             $basketItem = $basket->createItem('catalog', $product_id);
             $basketItem->setFields(
@@ -321,6 +318,19 @@ class Ion
                     'PRODUCT_PROVIDER_CLASS' => 'CCatalogProductProvider'
                 ]
             );
+
+            // Добавление свойств товару
+            foreach ($props as $prop) {
+                $collection = $basketItem->getPropertyCollection();
+
+                $item = $collection->createItem();
+                $item->setFields([
+                    'NAME' => $prop['NAME'],
+                    'CODE' => $prop['CODE'],
+                    'VALUE' => $prop['VALUE'],
+                ]);
+            }
+
             $basket->save();
 
             $msg['status'] = true;
@@ -346,7 +356,9 @@ class Ion
 
         $msg['status'] = false;
 
-        if (!$product_id || !Loader::includeModule('sale')) die();
+        if (!$product_id || !Loader::includeModule('sale')) {
+            die();
+        }
 
         if ($props === null) {
             $props = [];
