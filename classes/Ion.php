@@ -115,8 +115,9 @@ class Ion
 
                 $product_id = (int)$this->request['product_id'];
                 $quantity = (int)$this->request['quantity'];
+                $props = $this->request['props'];
 
-                $msg = $this->changeProductQuantityInBasket($product_id, $quantity);
+                $msg = $this->changeProductQuantityInBasket($product_id, $quantity, $props);
 
                 echo str_replace('&quot;', '\"', json_encode($msg));
 
