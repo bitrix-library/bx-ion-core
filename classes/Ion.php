@@ -181,7 +181,7 @@ class Ion
                 $person_type_id = (int)$this->request["person_type_id"];
                 $values = Util::mapToArray(json_decode($this->request["values"], true));
 
-                $order_id = $this->orderMakeOrder($pay_system_id, $delivery_service_id, $person_type_id, $values);
+                $order_id = $this->createOrder($pay_system_id, $delivery_service_id, $person_type_id, $values);
 
                 echo str_replace('&quot;', '\"', json_encode($order_id));
 
@@ -649,15 +649,18 @@ class Ion
      * @throws Main\ObjectNotFoundException
      * @throws Main\SystemException
      */
-    public function orderMakeOrder($pay_system_id, $delivery_service_id, $person_type_id, $values)
+    public function createOrder($pay_system_id, $delivery_service_id, $person_type_id, $values)
     {
-
         if (!$pay_system_id
             || !$person_type_id
             || !$values
             || !$delivery_service_id
             || !Loader::includeModule('sale')
         ) die();
+
+        // <SITE>
+        $site_id = $this->context->getSite();
+        // </SITE>
 
         // <USER>
         $user_id = \CUser::GetID();
@@ -667,51 +670,52 @@ class Ion
         // </USER>
 
         $allowed_fields = ['NAME', 'LASTNAME', 'EMAIL', 'PHONE', 'COMMENT'];
-        if (count($GLOBALS['ION']['ORDER_ALLOWED_FIELDS']) > 0) {
+        if (is_array($GLOBALS['ION']['ORDER_ALLOWED_FIELDS'])) {
             $allowed_fields = array_merge($GLOBALS['ION']['ORDER_ALLOWED_FIELDS'], $allowed_fields);
         }
 
-        //DiscountCouponsManager::init();
+        $order = Order::create($site_id, $user_id);
 
-        $order = Order::create($this->context->getSite(), $user_id);
         $order->setPersonTypeId($person_type_id);
-        $basket = Sale\Basket::loadItemsForFUser(\CSaleBasket::GetBasketUserID(), $this->context->getSite())->getOrderableItems();
-        $order->setBasket($basket);
 
-        // <SHIPMENT>
-        $shipmentCollection = $order->getShipmentCollection();
-        $shipment = $shipmentCollection->createItem();
-        // $service = Delivery\Services\Manager::getById(Delivery\Services\EmptyDeliveryService::getEmptyDeliveryServiceId());
-        $service = Delivery\Services\Manager::getById($delivery_service_id);
-        $shipment->setFields(array(
-            'DELIVERY_ID' => $service['ID'],
-            'DELIVERY_NAME' => $service['NAME']
-        ));
-        // </SHIPMENT>
+        $order->setField('USER_DESCRIPTION', $values['USER_DESCRIPTION']);
 
-        // <PAYMENT>
-        $paymentCollection = $order->getPaymentCollection();
-        $payment = $paymentCollection->createItem();
-        $paySystemService = PaySystem\Manager::getObjectById($pay_system_id);
-        $payment->setFields(array(
-            'PAY_SYSTEM_ID' => $paySystemService->getField("PAY_SYSTEM_ID"),
-            'PAY_SYSTEM_NAME' => $paySystemService->getField("NAME"),
-        ));
-        // </PAYMENT>
-
-        $order->doFinalAction(true);
-
+        // <PROPS>
         $propertyCollection = $order->getPropertyCollection();
-
-        $currencyCode = Option::get('sale', 'default_currency', 'RUB', $this->context->getSite());
-        $order->setField('CURRENCY', $currencyCode);
-
         foreach ($propertyCollection as $el) {
             if ($values[$el->getField('CODE')] && in_array($el->getField('CODE'), $allowed_fields)) {
                 $el->setValue($values[$el->getField('CODE')]);
             }
         }
-        $order->setField('USER_DESCRIPTION', $values['USER_DESCRIPTION']);
+        // </PROPS>
+
+        // <BASKET>
+        $basketLoad = Sale\Basket::loadItemsForFUser(\CSaleBasket::GetBasketUserID(), $site_id);
+        $basketItems = $basketLoad->getOrderableItems();
+        $order->setBasket($basketItems);
+        // </BASKET>
+
+        // <DELIVERY>
+        $shipmentCollection = $order->getShipmentCollection();
+        $shipment = $shipmentCollection->createItem(
+            \Bitrix\Sale\Delivery\Services\Manager::getObjectById($delivery_service_id)
+        );
+        $shipmentItemCollection = $shipment->getShipmentItemCollection();
+        foreach ($basketItems as $basketItem)
+        {
+            $item = $shipmentItemCollection->createItem($basketItem);
+            $item->setQuantity($basketItem->getQuantity());
+        }
+        // </DELIVERY>
+
+        // <PAYMENT>
+        $paymentCollection = $order->getPaymentCollection();
+        $payment = $paymentCollection->createItem(
+            \Bitrix\Sale\PaySystem\Manager::getObjectById($pay_system_id)
+        );
+        $payment->setField('SUM', $order->getPrice());
+        $payment->setField('CURRENCY', $order->getCurrency());
+        // </PAYMENT>
 
         if ($GLOBALS['ION']['MAKE_ORDER_HANDLER'] instanceof \Closure) {
             $GLOBALS['ION']['MAKE_ORDER_HANDLER']($order);
