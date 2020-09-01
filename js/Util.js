@@ -51,3 +51,60 @@ let reloadPageWithGetParams = (params => {
         old_query : window.location.search.substr(1),
     });
 });
+
+/**
+ *
+ * @type
+ * BX-Panel {
+ */
+document.addEventListener(`DOMContentLoaded`, event => {
+	(el => {
+		if (el === undefined || el === null) {
+			return;
+		}
+
+		el.parentElement.style.setProperty(`display`, `block`);
+		el.parentElement.style.setProperty(`transition`, `all 0s`);
+		el.style.setProperty(`position`, `fixed`, `important`);
+		el.style.setProperty(`transition`, `all 0s`);
+
+		if (BX.getCookie(el.id + `-position-top`) !== undefined
+			&& BX.getCookie(el.id + `-position-top`) <= document.documentElement.clientHeight - el.offsetHeight
+			&& BX.getCookie(el.id + `-position-top`) >= 0) {
+			el.style.setProperty(`top`, BX.getCookie(el.id + `-position-top`) + `px`);
+		}
+		if (BX.getCookie(el.id + `-position-left`) !== undefined
+			&& BX.getCookie(el.id + `-position-left`) <= document.documentElement.clientWidth - el.offsetWidth
+			&& BX.getCookie(el.id + `-position-left`) >= 0) {
+			el.style.setProperty(`left`, BX.getCookie(el.id + `-position-left`) + `px`);
+		}
+
+		el.onmousedown = e => {
+			let start_pos_x = e.clientX;
+			let start_pos_y = e.clientY;
+			document.onmouseup = () => {
+				document.onmouseup = null;
+				document.onmousemove = null;
+				return false;
+			};
+			document.onmousemove = e => {
+				let new_pos_x = start_pos_x - e.clientX;
+				let new_pos_y = start_pos_y - e.clientY;
+				start_pos_x = e.clientX;
+				start_pos_y = e.clientY;
+				if (el.offsetTop - new_pos_y <= document.documentElement.clientHeight - el.offsetHeight
+					&& el.offsetTop - new_pos_y >= 0) {
+					el.style.setProperty(`top`, (el.offsetTop - new_pos_y) + `px`);
+					BX.setCookie(el.id + `-position-top`, (el.offsetTop - new_pos_y), { expires: 3600 * 24, path: `/` });
+				}
+				if (el.offsetLeft - new_pos_x <= document.documentElement.clientWidth - el.offsetWidth
+					&& el.offsetLeft - new_pos_x >= 0) {
+					el.style.setProperty(`left`, (el.offsetLeft - new_pos_x) + `px`);
+					BX.setCookie(el.id + `-position-left`, (el.offsetLeft - new_pos_x), { expires: 3600 * 24, path: `/` });
+				}
+				return false;
+			};
+			return false;
+		};
+	})(document.getElementById(`bx-panel`));
+});
