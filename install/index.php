@@ -14,8 +14,8 @@ class ion extends CModule
 	
 	function __construct()
 	{
-		$this->MODULE_VERSION = "1.0.1";
-		$this->MODULE_VERSION_DATE = "2019-07-18 18:00";
+		$this->MODULE_VERSION = "1.2.0";
+		$this->MODULE_VERSION_DATE = "2020-10-01 12:00";
 		$this->MODULE_NAME = "ION";
 		$this->MODULE_DESCRIPTION = "Sources: github.com/amensum/ion";
 	}
@@ -44,8 +44,9 @@ class ion extends CModule
 		
 		// <EVENTS>
 		$eventManager = \Bitrix\Main\EventManager::getInstance();
-		$eventManager->registerEventHandler("main", "OnAfterEpilog", $this->MODULE_ID, "\Ion\Ion", "connectOnAfterEpilog");
-		$eventManager->registerEventHandler("main", "OnProlog", $this->MODULE_ID, "\Ion\Ion", "connectOnProlog");
+        $eventManager->registerEventHandler("main", "OnProlog", $this->MODULE_ID, "\Ion\Ion", "connectOnProlog");
+        $eventManager->registerEventHandler("main", "OnEpilog", $this->MODULE_ID, "\Ion\Ion", "connectOnEpilog");
+        $eventManager->registerEventHandler("main", "OnAfterEpilog", $this->MODULE_ID, "\Ion\Ion", "connectOnAfterEpilog");
 		// </EVENTS>
 		
 		RegisterModule($this->MODULE_ID);
@@ -58,8 +59,9 @@ class ion extends CModule
 		
 		// <EVENTS>
 		$eventManager = \Bitrix\Main\EventManager::getInstance();
-		$eventManager->unRegisterEventHandler("main", "OnAfterEpilog", $this->MODULE_ID, "\Ion\Ion", "connectOnAfterEpilog");
-		$eventManager->unRegisterEventHandler("main", "OnProlog", $this->MODULE_ID, "\Ion\Ion", "connectOnProlog");
+        $eventManager->unRegisterEventHandler("main", "OnProlog", $this->MODULE_ID, "\Ion\Ion", "connectOnProlog");
+        $eventManager->unRegisterEventHandler("main", "OnEpilog", $this->MODULE_ID, "\Ion\Ion", "connectOnEpilog");
+        $eventManager->unRegisterEventHandler("main", "OnAfterEpilog", $this->MODULE_ID, "\Ion\Ion", "connectOnAfterEpilog");
 		// </EVENTS>
 		
 		UnRegisterModule($this->MODULE_ID);

@@ -66,11 +66,17 @@ class Ion
         Asset::getInstance()->addJs($instance->module_relative_path . '/js/Util.js');
     }
 
-    public static function connectOnAfterEpilog()
+    public static function connectOnEpilog()
     {
 
         $instance = Ion::getInstance();
         $instance->registerRequestHandlers();
+    }
+
+    public static function connectOnAfterEpilog()
+    {
+
+        $instance = Ion::getInstance();
     }
 
     public function registerRequestHandlers()
