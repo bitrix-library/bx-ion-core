@@ -2,20 +2,25 @@
 
 namespace Ion;
 
-use \Closure,
-	\Bitrix\Main,
-	\Bitrix\Main\Loader,
-	\Bitrix\Main\Application,
-	\Bitrix\Currency\CurrencyManager,
-	\Bitrix\Main\Page\Asset,
-	\Bitrix\Sale,
-	\Bitrix\Sale\Basket,
-	\Bitrix\Sale\Discount,
-	\Bitrix\Sale\Fuser,
-	\Bitrix\Sale\Order,
-	\Bitrix\Sale\Delivery,
-	\Bitrix\Sale\PaySystem,
-	\Bitrix\Main\Web\Json;
+use Closure;
+use CCurrency;
+use CCurrencyLang;
+use CIBlockElement;
+use Bitrix\Main;
+use Bitrix\Main\Loader;
+use Bitrix\Main\Application;
+use Bitrix\Main\Page\Asset;
+use Bitrix\Main\Web\Json;
+use Bitrix\Main\Type\DateTime;
+use Bitrix\Sale;
+use Bitrix\Sale\Basket;
+use Bitrix\Sale\Discount;
+use Bitrix\Sale\Fuser;
+use Bitrix\Sale\Order;
+use Bitrix\Sale\Delivery;
+use Bitrix\Sale\PaySystem\Manager;
+use Bitrix\Currency\CurrencyManager;
+use Bitrix\Catalog\CatalogViewedProductTable;
 
 /**
  * @class Ion
@@ -202,7 +207,7 @@ class Ion
 	 * @throws Main\NotSupportedException
 	 * @throws Main\ObjectNotFoundException
 	 */
-	public function addProductToBasket($product_id, $quantity, $props)
+	public function addProductToBasket($product_id, $quantity, $props): array
 	{
 		if (!$product_id || !Loader::includeModule('sale')) {
 			die();
@@ -409,10 +414,10 @@ class Ion
 			$item['BASE_PRICE'] = $obj->getBasePrice();
 			$item['SUM_PRICE'] = $item['PRICE'] * $item['QUANTITY'];
 			$item['SUM_BASE_PRICE'] = $item['BASE_PRICE'] * $item['QUANTITY'];
-			$item['FORMATTED_PRICE'] = \CCurrencyLang::CurrencyFormat($item['PRICE'], $item['CURRENCY']);
-			$item['FORMATTED_BASE_PRICE'] = \CCurrencyLang::CurrencyFormat($item['BASE_PRICE'], $item['CURRENCY']);
-			$item['SUM_FORMATTED_PRICE'] = \CCurrencyLang::CurrencyFormat($item['SUM_PRICE'], $item['CURRENCY']);
-			$item['SUM_FORMATTED_BASE_PRICE'] = \CCurrencyLang::CurrencyFormat($item['SUM_BASE_PRICE'], $item['CURRENCY']);
+			$item['FORMATTED_PRICE'] = CCurrencyLang::CurrencyFormat($item['PRICE'], $item['CURRENCY']);
+			$item['FORMATTED_BASE_PRICE'] = CCurrencyLang::CurrencyFormat($item['BASE_PRICE'], $item['CURRENCY']);
+			$item['SUM_FORMATTED_PRICE'] = CCurrencyLang::CurrencyFormat($item['SUM_PRICE'], $item['CURRENCY']);
+			$item['SUM_FORMATTED_BASE_PRICE'] = CCurrencyLang::CurrencyFormat($item['SUM_BASE_PRICE'], $item['CURRENCY']);
 
 			// Получение свойств продукта
 			$item["PROPS"] = $obj->getPropertyCollection()->getPropertyValues();
@@ -427,7 +432,7 @@ class Ion
 			$item['STOCK_QUANTITY_RESERVED'] = $product['QUANTITY_RESERVED'];
 
 			// Получение IBLOCK_ID элемента с которым связан продукт
-			$db_iblock_list = \CIBlockElement::GetById($item['PRODUCT_ID']);
+			$db_iblock_list = CIBlockElement::GetById($item['PRODUCT_ID']);
 			if ($db_iblock_el = $db_iblock_list->GetNext()) {
 				$item['PRODUCT_IBLOCK_ID'] = $db_iblock_el['IBLOCK_ID'];
 			}
@@ -446,7 +451,7 @@ class Ion
 			}
 
 			// Получение всех полей элемента с которым связан продукт
-			$db_iblock_list = \CIBlockElement::GetList(
+			$db_iblock_list = CIBlockElement::GetList(
 				[],
 				['IBLOCK_ID' => $item['PRODUCT_IBLOCK_ID'], 'ID' => $item['PRODUCT_ID']],
 				false,
@@ -504,8 +509,8 @@ class Ion
 		$info['WEIGHT'] = $basket->getWeight();
 		$info['VAT_RATE'] = $basket->getVatRate();
 		$info['VAT_SUM'] = $basket->getVatSum();
-		$info['FORMATTED_PRICE'] = \CCurrencyLang::CurrencyFormat($info['PRICE'], \CCurrency::GetBaseCurrency());
-		$info['FORMATTED_PRICE_WITHOUT_DISCOUNTS'] = \CCurrencyLang::CurrencyFormat($info['PRICE_WITHOUT_DISCOUNTS'], \CCurrency::GetBaseCurrency());
+		$info['FORMATTED_PRICE'] = CCurrencyLang::CurrencyFormat($info['PRICE'], CCurrency::GetBaseCurrency());
+		$info['FORMATTED_PRICE_WITHOUT_DISCOUNTS'] = CCurrencyLang::CurrencyFormat($info['PRICE_WITHOUT_DISCOUNTS'], CCurrency::GetBaseCurrency());
 		$info['ITEMS_QUANTITY'] = $basket->getQuantityList();
 		$info['QUANTITY'] = count($info['ITEMS_QUANTITY']);
 
@@ -528,10 +533,10 @@ class Ion
 		$msg['status'] = false;
 
 		if (!$currency) {
-			$currency = \CCurrency::GetBaseCurrency();
+			$currency = CCurrency::GetBaseCurrency();
 		}
 
-		$msg['FORMATTED_PRICE'] = \CCurrencyLang::CurrencyFormat($price, $currency);
+		$msg['FORMATTED_PRICE'] = CCurrencyLang::CurrencyFormat($price, $currency);
 		$msg['status'] = true;
 
 		return $msg;
@@ -561,7 +566,7 @@ class Ion
 		$delivery = Delivery\Services\Manager::getActiveList();
 
 		foreach ($delivery as $service) {
-			if ($service['CLASS_NAME'] == '\Bitrix\Sale\Delivery\Services\EmptyDeliveryService') {
+			if ($service['CLASS_NAME'] === '\Bitrix\Sale\Delivery\Services\EmptyDeliveryService') {
 				continue;
 			}
 			$service['PROPS_GROUP_ID'] = 'DELIVERY';
@@ -575,7 +580,7 @@ class Ion
 
 		// <PAYMENT>
 		$payment = array();
-		$db_list = PaySystem\Manager::getList(
+		$db_list = Manager::getList(
 			[
 				'select' => ['*'],
 				'filter' => [
@@ -697,7 +702,7 @@ class Ion
 		// <DELIVERY>
 		$shipmentCollection = $order->getShipmentCollection();
 		$shipment = $shipmentCollection->createItem(
-			\Bitrix\Sale\Delivery\Services\Manager::getObjectById($delivery_service_id)
+			Delivery\Services\Manager::getObjectById($delivery_service_id)
 		);
 		$shipmentItemCollection = $shipment->getShipmentItemCollection();
 		foreach ($basketItems as $basketItem) {
@@ -709,7 +714,7 @@ class Ion
 		// <PAYMENT>
 		$paymentCollection = $order->getPaymentCollection();
 		$payment = $paymentCollection->createItem(
-			\Bitrix\Sale\PaySystem\Manager::getObjectById($pay_system_id)
+			Manager::getObjectById($pay_system_id)
 		);
 		$payment->setField('SUM', $order->getPrice());
 		$payment->setField('CURRENCY', $order->getCurrency());
@@ -761,7 +766,7 @@ class Ion
 			);
 		}
 
-		$db_list = \CIBlockElement::GetList(
+		$db_list = CIBlockElement::GetList(
 			array(
 				'SORT' => 'ASC',
 				'ID' => 'ASC'
@@ -784,7 +789,7 @@ class Ion
 		}
 		unset($db_list);
 
-		$data['COUNT'] = \CIBlockElement::GetList(
+		$data['COUNT'] = CIBlockElement::GetList(
 			array(
 				'SORT' => 'ASC',
 				'ID' => 'ASC'
@@ -815,7 +820,7 @@ class Ion
 
 		$products = array();
 
-		$db_list = \Bitrix\Catalog\CatalogViewedProductTable::getList(
+		$db_list = CatalogViewedProductTable::getList(
 			array(
 				'limit' => $count,
 				'select' => array('*'),
@@ -855,7 +860,7 @@ class Ion
 
 		$result = null;
 
-		$db_list = \Bitrix\Catalog\CatalogViewedProductTable::getList(
+		$db_list = CatalogViewedProductTable::getList(
 			array(
 				'limit' => '1',
 				'select' => array('*'),
@@ -868,15 +873,15 @@ class Ion
 			)
 		);
 		if ($db_el = $db_list->fetch()) {
-			$result = \Bitrix\Catalog\CatalogViewedProductTable::update(
+			$result = CatalogViewedProductTable::update(
 				$db_el['ID'],
 				array(
 					'VIEW_COUNT' => $db_el['VIEW_COUNT'] + $view_count,
-					'DATE_VISIT' => \Bitrix\Main\Type\DateTime::createFromPhp(new \DateTime()),
+					'DATE_VISIT' => DateTime::createFromPhp(new \DateTime()),
 				)
 			);
 		} else {
-			$result = \Bitrix\Catalog\CatalogViewedProductTable::add(
+			$result = CatalogViewedProductTable::add(
 				array(
 					'PRODUCT_ID' => $product_id,
 					'ELEMENT_ID' => $element_id,
