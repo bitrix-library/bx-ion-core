@@ -5,22 +5,22 @@
  */
 class ion extends CModule
 {
-	var $MODULE_ID = "ion";
-	var $MODULE_VERSION;
-	var $MODULE_VERSION_DATE;
-	var $MODULE_NAME;
-	var $MODULE_DESCRIPTION;
-	var $MODULE_CSS;
+	public $MODULE_ID = "ion";
+	public $MODULE_VERSION;
+	public $MODULE_VERSION_DATE;
+	public $MODULE_NAME;
+	public $MODULE_DESCRIPTION;
+	public $MODULE_CSS;
 	
-	function __construct()
+	public function __construct()
 	{
-		$this->MODULE_VERSION = "1.2.0";
-		$this->MODULE_VERSION_DATE = "2020-10-01 12:00";
+		$this->MODULE_VERSION = "dev";
+		$this->MODULE_VERSION_DATE = "2020-10-01 18:00";
 		$this->MODULE_NAME = "ION";
 		$this->MODULE_DESCRIPTION = "Sources: github.com/amensum/ion";
 	}
 	
-	function InstallFiles()
+	public function InstallFiles()
 	{
 //		CopyDirFiles(
 //			$_SERVER["DOCUMENT_ROOT"]."/local/modules/ion/install/components",
@@ -31,13 +31,13 @@ class ion extends CModule
 		return true;
 	}
 	
-	function UnInstallFiles()
+	public function UnInstallFiles()
 	{
 //		DeleteDirFilesEx("/local/components/ion");
 		return true;
 	}
 	
-	function DoInstall()
+	public function DoInstall()
 	{
 		global $DOCUMENT_ROOT, $APPLICATION;
 		$this->InstallFiles();
@@ -52,7 +52,7 @@ class ion extends CModule
 		RegisterModule($this->MODULE_ID);
 	}
 	
-	function DoUninstall()
+	public function DoUninstall()
 	{
 		global $DOCUMENT_ROOT, $APPLICATION;
 		$this->UnInstallFiles();
