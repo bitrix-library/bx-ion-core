@@ -2,7 +2,8 @@
 
 namespace Ion;
 
-use \Bitrix\Main,
+use \Closure,
+	\Bitrix\Main,
 	\Bitrix\Main\Loader,
 	\Bitrix\Main\Application,
 	\Bitrix\Currency\CurrencyManager,
@@ -14,7 +15,7 @@ use \Bitrix\Main,
 	\Bitrix\Sale\Order,
 	\Bitrix\Sale\Delivery,
 	\Bitrix\Sale\PaySystem,
-	\Closure;
+	\Bitrix\Main\Web\Json;
 
 /**
  * @class Ion
@@ -32,7 +33,7 @@ class Ion
 	/**
 	 * @return mixed
 	 */
-	public static function getInstance()
+	public static function getInstance(): self
 	{
 		if (static::$instance === null) {
 			static::$instance = new static();
@@ -40,6 +41,9 @@ class Ion
 		return static::$instance;
 	}
 
+	/**
+	 * Ion constructor.
+	 */
 	private function __construct()
 	{
 		$this->context = Application::getInstance()->getContext();
@@ -57,28 +61,45 @@ class Ion
 		$GLOBALS['ION']['CLOSURES'] = null;
 	}
 
-	public static function connectOnProlog()
+	public static function connectOnProlog(): void
 	{
 		$instance = self::getInstance();
 		Asset::getInstance()->addJs($instance->module_relative_path . '/js/Util.js');
 	}
 
-	public static function connectOnEpilog()
+	public static function connectOnEpilog(): void
 	{
 		$instance = self::getInstance();
 		$instance->registerRequestHandlers();
 	}
 
-	public static function connectOnAfterEpilog()
+	public static function connectOnAfterEpilog(): void
 	{
 		$instance = self::getInstance();
 	}
 
-	public function registerRequestHandlers()
+	/**
+	 * @throws Main\ArgumentException
+	 * @throws Main\ArgumentNullException
+	 * @throws Main\ArgumentOutOfRangeException
+	 * @throws Main\ArgumentTypeException
+	 * @throws Main\InvalidOperationException
+	 * @throws Main\LoaderException
+	 * @throws Main\NotImplementedException
+	 * @throws Main\NotSupportedException
+	 * @throws Main\ObjectException
+	 * @throws Main\ObjectNotFoundException
+	 * @throws Main\SystemException
+	 */
+	public function registerRequestHandlers(): void
 	{
-		$GLOBALS['APPLICATION']->RestartBuffer();
+		if ($this->request['ion'] !== null) {
+			$GLOBALS['APPLICATION']->RestartBuffer();
+		}
 
-		switch ($this->request['action']) {
+		$result = null;
+
+		switch ($this->request['ion']) {
 			case 'get_ion_status':
 				$result = $this->getIonStatus();
 				break;
@@ -138,13 +159,13 @@ class Ion
 				break;
 		}
 
-		echo str_replace('&quot;', '\"', json_encode($result));
+		echo Json::encode($result);
 	}
 
 	/**
 	 * @return array
 	 */
-	public function getIonStatus()
+	public function getIonStatus(): array
 	{
 		return [
 			'Ion' => [
@@ -153,6 +174,10 @@ class Ion
 		];
 	}
 
+	/**
+	 * @param $id
+	 * @return null
+	 */
 	public function getClosure($id)
 	{
 		if ($GLOBALS['ION']['CLOSURES'][$id] instanceof Closure) {
@@ -165,9 +190,17 @@ class Ion
 	/**
 	 * @param $product_id
 	 * @param $quantity
-	 * @param array $props
-	 * @return mixed
+	 * @param $props
+	 * @return array
+	 * @throws Main\ArgumentException
+	 * @throws Main\ArgumentNullException
+	 * @throws Main\ArgumentOutOfRangeException
+	 * @throws Main\ArgumentTypeException
+	 * @throws Main\InvalidOperationException
 	 * @throws Main\LoaderException
+	 * @throws Main\NotImplementedException
+	 * @throws Main\NotSupportedException
+	 * @throws Main\ObjectNotFoundException
 	 */
 	public function addProductToBasket($product_id, $quantity, $props)
 	{
@@ -224,6 +257,14 @@ class Ion
 	 * @param $quantity
 	 * @param $props
 	 * @return mixed
+	 * @throws Main\ArgumentException
+	 * @throws Main\ArgumentNullException
+	 * @throws Main\ArgumentOutOfRangeException
+	 * @throws Main\ArgumentTypeException
+	 * @throws Main\LoaderException
+	 * @throws Main\NotImplementedException
+	 * @throws Main\NotSupportedException
+	 * @throws Main\ObjectNotFoundException
 	 */
 	public function changeProductQuantityInBasket($product_id, $quantity, $props)
 	{
@@ -290,6 +331,7 @@ class Ion
 	 * @throws Main\ArgumentException
 	 * @throws Main\ArgumentNullException
 	 * @throws Main\ArgumentOutOfRangeException
+	 * @throws Main\ArgumentTypeException
 	 * @throws Main\LoaderException
 	 * @throws Main\NotImplementedException
 	 * @throws Main\ObjectNotFoundException
@@ -330,7 +372,7 @@ class Ion
 	 * @throws Main\LoaderException
 	 * @throws Main\NotImplementedException
 	 */
-	public function getItemsFromBasket($fuser = null)
+	public function getItemsFromBasket($fuser = null): array
 	{
 		if (!Loader::includeModule('sale')
 			|| !Loader::includeModule('iblock')
@@ -428,11 +470,15 @@ class Ion
 
 	/**
 	 * @return array
+	 * @throws Main\ArgumentException
 	 * @throws Main\ArgumentNullException
+	 * @throws Main\ArgumentOutOfRangeException
+	 * @throws Main\ArgumentTypeException
 	 * @throws Main\InvalidOperationException
 	 * @throws Main\LoaderException
+	 * @throws Main\NotImplementedException
 	 */
-	public function getBasketInfo()
+	public function getBasketInfo(): array
 	{
 		if (!Loader::includeModule('sale')
 			|| !Loader::includeModule('iblock')
@@ -472,7 +518,7 @@ class Ion
 	 * @return array
 	 * @throws Main\LoaderException
 	 */
-	public function getCurrencyFormat($price, $currency = null)
+	public function getCurrencyFormat($price, $currency = null): array
 	{
 		if (!$price || !Loader::includeModule('sale')) {
 			die();
@@ -496,7 +542,7 @@ class Ion
 	 * @throws Main\ArgumentException
 	 * @throws Main\LoaderException
 	 */
-	public function getOrderFormGroups()
+	public function getOrderFormGroups(): array
 	{
 		if (!Loader::includeModule('sale')) {
 			die();
@@ -587,7 +633,7 @@ class Ion
 	 * @param $delivery_service_id
 	 * @param $person_type_id
 	 * @param $values
-	 * @return mixed
+	 * @return int
 	 * @throws Main\ArgumentException
 	 * @throws Main\ArgumentNullException
 	 * @throws Main\ArgumentOutOfRangeException
@@ -597,9 +643,10 @@ class Ion
 	 * @throws Main\NotSupportedException
 	 * @throws Main\ObjectException
 	 * @throws Main\ObjectNotFoundException
+	 * @throws Main\ObjectPropertyException
 	 * @throws Main\SystemException
 	 */
-	public function createOrder($pay_system_id, $delivery_service_id, $person_type_id, $values)
+	public function createOrder($pay_system_id, $delivery_service_id, $person_type_id, $values): int
 	{
 		if (!$pay_system_id
 			|| !$person_type_id
@@ -683,7 +730,7 @@ class Ion
 	 * @return array
 	 * @throws Main\LoaderException
 	 */
-	public function searchItemsByName($name, $page = 1, $page_size = 10)
+	public function searchItemsByName($name, $page = 1, $page_size = 10): array
 	{
 		if ($GLOBALS['ION']['SEARCH_IBLOCK_ID'] === null
 			|| $name === null
@@ -756,11 +803,11 @@ class Ion
 	 * @param int $count
 	 * @return array
 	 * @throws Main\ArgumentException
+	 * @throws Main\LoaderException
 	 * @throws Main\ObjectPropertyException
 	 * @throws Main\SystemException
-	 * @throws Main\LoaderException
 	 */
-	public function getViewedProducts($count = 10)
+	public function getViewedProducts($count = 10): array
 	{
 		if (!Loader::includeModule('catalog')) {
 			die();
@@ -790,7 +837,7 @@ class Ion
 	 * @param $product_id
 	 * @param $element_id
 	 * @param int $view_count
-	 * @return Main\ORM\Data\AddResult|Main\ORM\Data\UpdateResult|null
+	 * @return Main\ORM\Data\AddResult|Main\ORM\Data\UpdateResult
 	 * @throws Main\ArgumentException
 	 * @throws Main\LoaderException
 	 * @throws Main\ObjectPropertyException
@@ -847,7 +894,7 @@ class Ion
 	 * @return bool
 	 * @throws Main\LoaderException
 	 */
-	public function removeProductsFromBasket()
+	public function removeProductsFromBasket(): bool
 	{
 		if (!Loader::includeModule('sale')) {
 			die();
