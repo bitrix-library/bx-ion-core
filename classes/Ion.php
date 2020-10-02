@@ -5,7 +5,6 @@ namespace Ion;
 use \Bitrix\Main,
 	\Bitrix\Main\Loader,
 	\Bitrix\Main\Application,
-	\Bitrix\Main\Config\Option,
 	\Bitrix\Currency\CurrencyManager,
 	\Bitrix\Main\Page\Asset,
 	\Bitrix\Sale,
@@ -14,7 +13,8 @@ use \Bitrix\Main,
 	\Bitrix\Sale\Fuser,
 	\Bitrix\Sale\Order,
 	\Bitrix\Sale\Delivery,
-	\Bitrix\Sale\PaySystem;
+	\Bitrix\Sale\PaySystem,
+	\Closure;
 
 /**
  * @class Ion
@@ -34,7 +34,6 @@ class Ion
 	 */
 	public static function getInstance()
 	{
-
 		if (static::$instance === null) {
 			static::$instance = new static();
 		}
@@ -43,7 +42,6 @@ class Ion
 
 	private function __construct()
 	{
-
 		$this->context = Application::getInstance()->getContext();
 		$this->request = $this->context->getRequest();
 		$this->module_absolute_path = str_replace("\\", "/", dirname(__DIR__ . '\\..\\'));
@@ -61,147 +59,86 @@ class Ion
 
 	public static function connectOnProlog()
 	{
-
-		$instance = Ion::getInstance();
+		$instance = self::getInstance();
 		Asset::getInstance()->addJs($instance->module_relative_path . '/js/Util.js');
 	}
 
 	public static function connectOnEpilog()
 	{
-
-		$instance = Ion::getInstance();
+		$instance = self::getInstance();
 		$instance->registerRequestHandlers();
 	}
 
 	public static function connectOnAfterEpilog()
 	{
-
-		$instance = Ion::getInstance();
+		$instance = self::getInstance();
 	}
 
 	public function registerRequestHandlers()
 	{
+		$GLOBALS['APPLICATION']->RestartBuffer();
 
 		switch ($this->request['action']) {
 			case 'get_ion_status':
-				$GLOBALS['APPLICATION']->RestartBuffer();
-
-				$ion = $this->getIonStatus();
-
-				echo str_replace('&quot;', '\"', json_encode($ion));
-
+				$result = $this->getIonStatus();
 				break;
 
 			case 'get_closure':
-				$GLOBALS['APPLICATION']->RestartBuffer();
-
 				$id = $this->request['id'];
-
-				$msg = $this->getClosure($id);
-
-				echo str_replace('&quot;', '\"', json_encode($msg));
-
+				$result = $this->getClosure($id);
 				break;
 
 			case 'add_product_to_basket':
-				$GLOBALS['APPLICATION']->RestartBuffer();
-
 				$product_id = (int)$this->request['product_id'];
 				$quantity = (int)$this->request['quantity'];
 				$props = $this->request['props'];
-
-				$msg = $this->addProductToBasket($product_id, $quantity, $props);
-
-				echo str_replace('&quot;', '\"', json_encode($msg));
-
+				$result = $this->addProductToBasket($product_id, $quantity, $props);
 				break;
 
 			case 'change_product_quantity_in_basket':
-				$GLOBALS['APPLICATION']->RestartBuffer();
-
 				$product_id = (int)$this->request['product_id'];
 				$quantity = (int)$this->request['quantity'];
 				$props = $this->request['props'];
-
-				$msg = $this->changeProductQuantityInBasket($product_id, $quantity, $props);
-
-				echo str_replace('&quot;', '\"', json_encode($msg));
-
+				$result = $this->changeProductQuantityInBasket($product_id, $quantity, $props);
 				break;
 
 			case 'remove_product_from_basket':
-				$GLOBALS['APPLICATION']->RestartBuffer();
-
 				$product_id = (int)$this->request['product_id'];
 				$props = $this->request['props'];
-
-				$msg = $this->removeProductFromBasket($product_id, $props);
-
-				echo str_replace('&quot;', '\"', json_encode($msg));
-
+				$result = $this->removeProductFromBasket($product_id, $props);
 				break;
 
 			case 'get_items_from_basket':
-				$GLOBALS['APPLICATION']->RestartBuffer();
-
-				$items = $this->getItemsFromBasket();
-
-				echo str_replace('&quot;', '\"', json_encode($items));
-
+				$result = $this->getItemsFromBasket();
 				break;
 
 			case 'get_basket_info':
-				$GLOBALS['APPLICATION']->RestartBuffer();
-
-				$info = $this->getBasketInfo();
-
-				echo str_replace('&quot;', '\"', json_encode($info));
-
+				$result = $this->getBasketInfo();
 				break;
 
 			case 'get_currency_format':
-				$GLOBALS['APPLICATION']->RestartBuffer();
-
 				$price = (float)$this->request['price'];
-
-				$msg = $this->getCurrencyFormat($price);
-
-				echo str_replace('&quot;', '\"', json_encode($msg));
-
+				$result = $this->getCurrencyFormat($price);
 				break;
 
 			case 'get_order_form_groups':
-				$GLOBALS['APPLICATION']->RestartBuffer();
-
-				$groups = $this->getOrderFormGroups();
-
-				echo str_replace('&quot;', '\"', json_encode($groups));
-
+				$result = $this->getOrderFormGroups();
 				break;
 
 			case 'order_make_order':
-				$GLOBALS['APPLICATION']->RestartBuffer();
-
 				$delivery_service_id = (int)$this->request["delivery_service_id"];
 				$pay_system_id = (int)$this->request["pay_system_id"];
 				$person_type_id = (int)$this->request["person_type_id"];
 				$values = Util::mapToArray(json_decode($this->request["values"], true));
-
-				$order_id = $this->createOrder($pay_system_id, $delivery_service_id, $person_type_id, $values);
-
-				echo str_replace('&quot;', '\"', json_encode($order_id));
-
+				$result = $this->createOrder($pay_system_id, $delivery_service_id, $person_type_id, $values);
 				break;
 
 			case 'search_items_by_name':
-				$GLOBALS['APPLICATION']->RestartBuffer();
-
-				$items = $this->searchItemsByName($this->request["name"], $this->request["page"]);
-
-				echo str_replace('&quot;', '\"', json_encode($items));
-
+				$result = $this->searchItemsByName($this->request["name"], $this->request["page"]);
 				break;
 		}
+
+		echo str_replace('&quot;', '\"', json_encode($result));
 	}
 
 	/**
@@ -209,18 +146,16 @@ class Ion
 	 */
 	public function getIonStatus()
 	{
-		$ion = [
+		return [
 			'Ion' => [
 				'status' => true
 			]
 		];
-
-		return $ion;
 	}
 
 	public function getClosure($id)
 	{
-		if ($GLOBALS['ION']['CLOSURES'][$id] instanceof \Closure) {
+		if ($GLOBALS['ION']['CLOSURES'][$id] instanceof Closure) {
 			return $GLOBALS['ION']['CLOSURES'][$id]();
 		}
 
@@ -232,6 +167,7 @@ class Ion
 	 * @param $quantity
 	 * @param array $props
 	 * @return mixed
+	 * @throws Main\LoaderException
 	 */
 	public function addProductToBasket($product_id, $quantity, $props)
 	{
@@ -360,12 +296,11 @@ class Ion
 	 */
 	public function removeProductFromBasket($product_id, $props)
 	{
-
-		$msg['status'] = false;
-
 		if (!$product_id || !Loader::includeModule('sale')) {
 			die();
 		}
+
+		$msg['status'] = false;
 
 		if ($props === null) {
 			$props = [];
@@ -385,18 +320,24 @@ class Ion
 	}
 
 	/**
+	 * @param null $fuser
 	 * @return array
+	 * @throws Main\ArgumentException
 	 * @throws Main\ArgumentNullException
+	 * @throws Main\ArgumentOutOfRangeException
+	 * @throws Main\ArgumentTypeException
 	 * @throws Main\InvalidOperationException
 	 * @throws Main\LoaderException
+	 * @throws Main\NotImplementedException
 	 */
 	public function getItemsFromBasket($fuser = null)
 	{
-
 		if (!Loader::includeModule('sale')
 			|| !Loader::includeModule('iblock')
 			|| !Loader::includeModule('sale')
-		) die();
+		) {
+			die();
+		}
 
 		if ($fuser === null) {
 			$fuser = Fuser::getId();
@@ -493,10 +434,11 @@ class Ion
 	 */
 	public function getBasketInfo()
 	{
-
 		if (!Loader::includeModule('sale')
 			|| !Loader::includeModule('iblock')
-		) die();
+		) {
+			die();
+		}
 
 		$info = array();
 
@@ -532,11 +474,12 @@ class Ion
 	 */
 	public function getCurrencyFormat($price, $currency = null)
 	{
+		if (!$price || !Loader::includeModule('sale')) {
+			die();
+		}
 
 		$msg = array();
 		$msg['status'] = false;
-
-		if (!$price || !Loader::includeModule('sale')) die();
 
 		if (!$currency) {
 			$currency = \CCurrency::GetBaseCurrency();
@@ -555,8 +498,9 @@ class Ion
 	 */
 	public function getOrderFormGroups()
 	{
-
-		if (!Loader::includeModule('sale')) die();
+		if (!Loader::includeModule('sale')) {
+			die();
+		}
 
 		// <PROPS>
 		$props = array();
@@ -621,7 +565,7 @@ class Ion
 		// <PROPS TO GROUPS>
 		foreach ($groups as $key => &$group) {
 			foreach ($props as $prop) {
-				if ($prop['PROPS_GROUP_ID'] == $group['ID']) {
+				if ($prop['PROPS_GROUP_ID'] === $group['ID']) {
 					$group['PROPS'][] = $prop;
 				}
 			}
@@ -630,7 +574,7 @@ class Ion
 			}
 		}
 		sort($groups);
-		usort($groups, function ($a, $b) {
+		usort($groups, static function ($a, $b) {
 			return $a['SORT'] - $b['SORT'];
 		});
 		// </PROPS TO GROUPS>
@@ -662,7 +606,9 @@ class Ion
 			|| !$values
 			|| !$delivery_service_id
 			|| !Loader::includeModule('sale')
-		) die();
+		) {
+			die();
+		}
 
 		// <SITE>
 		$site_id = $this->context->getSite();
@@ -722,14 +668,12 @@ class Ion
 		$payment->setField('CURRENCY', $order->getCurrency());
 		// </PAYMENT>
 
-		if ($GLOBALS['ION']['MAKE_ORDER_HANDLER'] instanceof \Closure) {
+		if ($GLOBALS['ION']['MAKE_ORDER_HANDLER'] instanceof Closure) {
 			$GLOBALS['ION']['MAKE_ORDER_HANDLER']($order);
 		}
 
 		$order->save();
-		$order_id = $order->GetId();
-
-		return $order_id;
+		return $order->GetId();
 	}
 
 	/**
@@ -741,15 +685,14 @@ class Ion
 	 */
 	public function searchItemsByName($name, $page = 1, $page_size = 10)
 	{
-
-		$iblock_id = $GLOBALS['ION']['SEARCH_IBLOCK_ID'];
-
-		if ($iblock_id === null
+		if ($GLOBALS['ION']['SEARCH_IBLOCK_ID'] === null
 			|| $name === null
 			|| $page === null
 			|| $page_size === null
 			|| !Loader::includeModule('iblock')
-		) die();
+		) {
+			die();
+		}
 
 		$data = array(
 			'ITEMS' => array(),
@@ -777,7 +720,7 @@ class Ion
 				'ID' => 'ASC'
 			),
 			array(
-				'IBLOCK_ID' => $iblock_id,
+				'IBLOCK_ID' => $GLOBALS['ION']['SEARCH_IBLOCK_ID'],
 				'%NAME' => $name,
 				'ACTIVE' => 'Y'
 			),
@@ -800,7 +743,7 @@ class Ion
 				'ID' => 'ASC'
 			),
 			array(
-				'IBLOCK_ID' => $iblock_id,
+				'IBLOCK_ID' => $GLOBALS['ION']['SEARCH_IBLOCK_ID'],
 				'%NAME' => $name
 			),
 			array()
@@ -819,8 +762,9 @@ class Ion
 	 */
 	public function getViewedProducts($count = 10)
 	{
-
-		if (!Loader::includeModule('catalog')) die();
+		if (!Loader::includeModule('catalog')) {
+			die();
+		}
 
 		$products = array();
 
@@ -854,12 +798,13 @@ class Ion
 	 */
 	public function addProductViewCount($product_id, $element_id, $view_count = 1)
 	{
-
 		if ($product_id === null
 			|| $element_id === null
 			|| $view_count === null
 			|| !Loader::includeModule('catalog')
-		) die();
+		) {
+			die();
+		}
 
 		$result = null;
 
@@ -899,23 +844,18 @@ class Ion
 	}
 
 	/**
-	 * @return array
+	 * @return bool
 	 * @throws Main\LoaderException
 	 */
 	public function removeProductsFromBasket()
 	{
-		if (!Loader::includeModule('sale')) die();
-		if (!Loader::includeModule('catalog')) die();
+		if (!Loader::includeModule('sale')) {
+			die();
+		}
+		if (!Loader::includeModule('catalog')) {
+			die();
+		}
 
-		$result = \CSaleBasket::DeleteAll(Fuser::getId());
-
-		//		$result = array();
-		//
-		//		$basket = Basket::loadItemsForFUser(Fuser::getId(), $this->context->getSite());
-		//		foreach ($basket->getBasketItems() as $item) {
-		//			$result[] = $this->removeProductFromBasket($item->getId());
-		//		}
-
-		return $result;
+		return \CSaleBasket::DeleteAll(Fuser::getId());
 	}
 }
