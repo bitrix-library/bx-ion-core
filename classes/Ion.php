@@ -100,71 +100,71 @@ class Ion
 	{
 		if ($this->request['ion'] !== null) {
 			$GLOBALS['APPLICATION']->RestartBuffer();
+
+			$result = null;
+
+			switch ($this->request['ion']) {
+				case 'get_ion_status':
+					$result = $this->getIonStatus();
+					break;
+
+				case 'get_closure':
+					$id = $this->request['id'];
+					$result = $this->getClosure($id);
+					break;
+
+				case 'add_product_to_basket':
+					$product_id = (int)$this->request['product_id'];
+					$quantity = (int)$this->request['quantity'];
+					$props = $this->request['props'];
+					$result = $this->addProductToBasket($product_id, $quantity, $props);
+					break;
+
+				case 'change_product_quantity_in_basket':
+					$product_id = (int)$this->request['product_id'];
+					$quantity = (int)$this->request['quantity'];
+					$props = $this->request['props'];
+					$result = $this->changeProductQuantityInBasket($product_id, $quantity, $props);
+					break;
+
+				case 'remove_product_from_basket':
+					$product_id = (int)$this->request['product_id'];
+					$props = $this->request['props'];
+					$result = $this->removeProductFromBasket($product_id, $props);
+					break;
+
+				case 'get_items_from_basket':
+					$result = $this->getItemsFromBasket();
+					break;
+
+				case 'get_basket_info':
+					$result = $this->getBasketInfo();
+					break;
+
+				case 'get_currency_format':
+					$price = (float)$this->request['price'];
+					$result = $this->getCurrencyFormat($price);
+					break;
+
+				case 'get_order_form_groups':
+					$result = $this->getOrderFormGroups();
+					break;
+
+				case 'order_make_order':
+					$delivery_service_id = (int)$this->request["delivery_service_id"];
+					$pay_system_id = (int)$this->request["pay_system_id"];
+					$person_type_id = (int)$this->request["person_type_id"];
+					$values = Util::mapToArray(json_decode($this->request["values"], true));
+					$result = $this->createOrder($pay_system_id, $delivery_service_id, $person_type_id, $values);
+					break;
+
+				case 'search_items_by_name':
+					$result = $this->searchItemsByName($this->request["name"], $this->request["page"]);
+					break;
+			}
+
+			echo Json::encode($result);
 		}
-
-		$result = null;
-
-		switch ($this->request['ion']) {
-			case 'get_ion_status':
-				$result = $this->getIonStatus();
-				break;
-
-			case 'get_closure':
-				$id = $this->request['id'];
-				$result = $this->getClosure($id);
-				break;
-
-			case 'add_product_to_basket':
-				$product_id = (int)$this->request['product_id'];
-				$quantity = (int)$this->request['quantity'];
-				$props = $this->request['props'];
-				$result = $this->addProductToBasket($product_id, $quantity, $props);
-				break;
-
-			case 'change_product_quantity_in_basket':
-				$product_id = (int)$this->request['product_id'];
-				$quantity = (int)$this->request['quantity'];
-				$props = $this->request['props'];
-				$result = $this->changeProductQuantityInBasket($product_id, $quantity, $props);
-				break;
-
-			case 'remove_product_from_basket':
-				$product_id = (int)$this->request['product_id'];
-				$props = $this->request['props'];
-				$result = $this->removeProductFromBasket($product_id, $props);
-				break;
-
-			case 'get_items_from_basket':
-				$result = $this->getItemsFromBasket();
-				break;
-
-			case 'get_basket_info':
-				$result = $this->getBasketInfo();
-				break;
-
-			case 'get_currency_format':
-				$price = (float)$this->request['price'];
-				$result = $this->getCurrencyFormat($price);
-				break;
-
-			case 'get_order_form_groups':
-				$result = $this->getOrderFormGroups();
-				break;
-
-			case 'order_make_order':
-				$delivery_service_id = (int)$this->request["delivery_service_id"];
-				$pay_system_id = (int)$this->request["pay_system_id"];
-				$person_type_id = (int)$this->request["person_type_id"];
-				$values = Util::mapToArray(json_decode($this->request["values"], true));
-				$result = $this->createOrder($pay_system_id, $delivery_service_id, $person_type_id, $values);
-				break;
-
-			case 'search_items_by_name':
-				$result = $this->searchItemsByName($this->request["name"], $this->request["page"]);
-				break;
-		}
-
-		echo Json::encode($result);
 	}
 
 	/**
