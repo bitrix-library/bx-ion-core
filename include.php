@@ -1,12 +1,11 @@
 <?php
-
 require __DIR__.'/vendor/autoload.php';
 
+use Ion\Ion;
+use Ion\ArrayHelper;
 use Bitrix\Main\Loader;
 
-$arClasses = array(
-	'\Ion\Ion' => 'classes/Ion.php',
-	'\Ion\Util' => 'classes/Util.php'
-);
-
-Loader::registerAutoLoadClasses('ion', $arClasses);
+Loader::registerAutoLoadClasses('ion', array(
+	Ion::class => './classes/Ion.php',
+	ArrayHelper::class => './classes/ArrayHelper.php'
+));

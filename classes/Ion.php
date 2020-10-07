@@ -23,8 +23,10 @@ use Bitrix\Currency\CurrencyManager;
 use Bitrix\Catalog\CatalogViewedProductTable;
 
 /**
- * @class Ion
- * @pattern Singleton
+ * Class Ion
+ *
+ * @author https://github.com/amensum
+ * @package Ion
  */
 class Ion
 {
@@ -69,7 +71,8 @@ class Ion
 	public static function connectOnProlog(): void
 	{
 		$instance = self::getInstance();
-		Asset::getInstance()->addJs($instance->module_relative_path . '/js/Util.js');
+		Asset::getInstance()->addJs($instance->module_relative_path . '/js/ion.js');
+		Asset::getInstance()->addCss($instance->module_relative_path . '/css/ion.css');
 	}
 
 	public static function connectOnEpilog(): void
@@ -154,7 +157,7 @@ class Ion
 					$delivery_service_id = (int)$this->request["delivery_service_id"];
 					$pay_system_id = (int)$this->request["pay_system_id"];
 					$person_type_id = (int)$this->request["person_type_id"];
-					$values = Util::mapToArray(json_decode($this->request["values"], true));
+					$values = ArrayHelper::mapToArray(json_decode($this->request["values"], true));
 					$result = $this->createOrder($pay_system_id, $delivery_service_id, $person_type_id, $values);
 					break;
 

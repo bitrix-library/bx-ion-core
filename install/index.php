@@ -1,9 +1,13 @@
 <?php
 
+use Ion\Ion as I;
+use Bitrix\Main\EventManager;
+
 /**
- * @module ion
+ * Class IonModule
+ * @module Ion
  */
-class ion extends CModule
+class Ion extends CModule
 {
 	public $MODULE_ID = "ion";
 	public $MODULE_VERSION;
@@ -11,7 +15,10 @@ class ion extends CModule
 	public $MODULE_NAME;
 	public $MODULE_DESCRIPTION;
 	public $MODULE_CSS;
-	
+
+	/**
+	 * Ion constructor.
+	 */
 	public function __construct()
 	{
 		$this->MODULE_VERSION = "dev";
@@ -19,51 +26,59 @@ class ion extends CModule
 		$this->MODULE_NAME = "ION";
 		$this->MODULE_DESCRIPTION = "Sources: github.com/amensum/ion";
 	}
-	
-	public function InstallFiles()
+
+	/**
+	 * @return bool
+	 */
+	public function InstallFiles(): bool
 	{
-//		CopyDirFiles(
-//			$_SERVER["DOCUMENT_ROOT"]."/local/modules/ion/install/components",
-//			$_SERVER["DOCUMENT_ROOT"]."/local/components",
-//			true,
-//			true
-//		);
+		// CopyDirFiles(
+		// 	$_SERVER["DOCUMENT_ROOT"]."/local/modules/ion/install/components",
+		// 	$_SERVER["DOCUMENT_ROOT"]."/local/components",
+		// 	true,
+		// 	true
+		// );
 		return true;
 	}
-	
-	public function UnInstallFiles()
+
+	/**
+	 * @return bool
+	 */
+	public function UnInstallFiles(): bool
 	{
-//		DeleteDirFilesEx("/local/components/ion");
+		// DeleteDirFilesEx("/local/components/ion");
 		return true;
 	}
-	
-	public function DoInstall()
+
+	/**
+	 * @return void
+	 */
+	public function DoInstall(): void
 	{
-		global $DOCUMENT_ROOT, $APPLICATION;
+		// global $DOCUMENT_ROOT, $APPLICATION;
 		$this->InstallFiles();
-		
-		// <EVENTS>
-		$eventManager = \Bitrix\Main\EventManager::getInstance();
-        $eventManager->registerEventHandler("main", "OnProlog", $this->MODULE_ID, "\Ion\Ion", "connectOnProlog");
-        $eventManager->registerEventHandler("main", "OnEpilog", $this->MODULE_ID, "\Ion\Ion", "connectOnEpilog");
-        $eventManager->registerEventHandler("main", "OnAfterEpilog", $this->MODULE_ID, "\Ion\Ion", "connectOnAfterEpilog");
-		// </EVENTS>
-		
+
+		$eventManager = EventManager::getInstance();
+		$eventManager->registerEventHandler("main", "OnProlog", $this->MODULE_ID, I::class, "connectOnProlog");
+		$eventManager->registerEventHandler("main", "OnEpilog", $this->MODULE_ID, I::class, "connectOnEpilog");
+		$eventManager->registerEventHandler("main", "OnAfterEpilog", $this->MODULE_ID, I::class, "connectOnAfterEpilog");
+
 		RegisterModule($this->MODULE_ID);
 	}
-	
-	public function DoUninstall()
+
+	/**
+	 * @return void
+	 */
+	public function DoUninstall(): void
 	{
-		global $DOCUMENT_ROOT, $APPLICATION;
+		// global $DOCUMENT_ROOT, $APPLICATION;
 		$this->UnInstallFiles();
-		
-		// <EVENTS>
-		$eventManager = \Bitrix\Main\EventManager::getInstance();
-        $eventManager->unRegisterEventHandler("main", "OnProlog", $this->MODULE_ID, "\Ion\Ion", "connectOnProlog");
-        $eventManager->unRegisterEventHandler("main", "OnEpilog", $this->MODULE_ID, "\Ion\Ion", "connectOnEpilog");
-        $eventManager->unRegisterEventHandler("main", "OnAfterEpilog", $this->MODULE_ID, "\Ion\Ion", "connectOnAfterEpilog");
-		// </EVENTS>
-		
+
+		$eventManager = EventManager::getInstance();
+		$eventManager->unRegisterEventHandler("main", "OnProlog", $this->MODULE_ID, I::class, "connectOnProlog");
+		$eventManager->unRegisterEventHandler("main", "OnEpilog", $this->MODULE_ID, I::class, "connectOnEpilog");
+		$eventManager->unRegisterEventHandler("main", "OnAfterEpilog", $this->MODULE_ID, I::class, "connectOnAfterEpilog");
+
 		UnRegisterModule($this->MODULE_ID);
 	}
 }
