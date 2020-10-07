@@ -125,23 +125,20 @@ class Ion
 					$response = $this->getClosure($id);
 					break;
 
-				case 'add_product_to_basket':
-					$product_id = (int)$this->request['product_id'];
-					$quantity = (int)$this->request['quantity'];
-					$props = $this->request['props'];
-					$response = $this->addProductToBasket($product_id, $quantity, $props);
-					break;
-
-				case 'change_product_quantity_in_basket':
-					$product_id = (int)$this->request['product_id'];
-					$quantity = (int)$this->request['quantity'];
-					$props = $this->request['props'];
-					$response = $this->changeProductQuantityInBasket($product_id, $quantity, $props);
+				case 'set_product_in_basket':
+					$id = (int)$this->request['product_id'];
+					$quantity = (string)$this->request['quantity'];
+					$props = (array)$this->request['props'];
+					$response = $this->setProductInBasket(
+						$id,
+						$quantity,
+						$props
+					);
 					break;
 
 				case 'remove_product_from_basket':
 					$product_id = (int)$this->request['product_id'];
-					$props = $this->request['props'];
+					$props = (array)$this->request['props'];
 					$response = $this->removeProductFromBasket($product_id, $props);
 					break;
 
@@ -191,10 +188,10 @@ class Ion
 	}
 
 	/**
-	 * @param $id
+	 * @param int $id
 	 * @return array|null
 	 */
-	public function getClosure($id): ?array
+	public function getClosure(int $id): ?array
 	{
 		if ($GLOBALS['ION']['CLOSURES'][$id] instanceof Closure) {
 			return [
@@ -210,9 +207,9 @@ class Ion
 	}
 
 	/**
-	 * @param $product_id
-	 * @param $quantity
-	 * @param $props
+	 * @param int $product_id
+	 * @param string $quantity
+	 * @param array $props
 	 * @return array|null
 	 * @throws Main\ArgumentException
 	 * @throws Main\ArgumentNullException
@@ -223,36 +220,58 @@ class Ion
 	 * @throws Main\NotSupportedException
 	 * @throws Main\ObjectNotFoundException
 	 */
-	public function addProductToBasket($product_id, $quantity = 1, $props = []): ?array
+	public function setProductInBasket(int $product_id, string $quantity, array $props): ?array
 	{
-		if (!$product_id) {
+		if ($product_id === null) {
 			return [
 				'status' => false,
 				'result' => null
 			];
 		}
 
-		if ($quantity === null) {
-			$quantity = 1;
-		}
+		$site = $this->context->getSite();
 
-		if ($props === null) {
-			$props = [];
-		}
-
-		$basket = Basket::loadItemsForFUser(Fuser::getId(), $this->context->getSite());
+		$basket = Basket::loadItemsForFUser(Fuser::getId(), $site);
 
 		if ($basketItem = $basket->getExistsItem('catalog', $product_id, $props)) {
+			$new_quantity = $quantity;
+
+			if ($new_quantity[0] === '>') {
+				$new_quantity = $basketItem->getQuantity() + substr($new_quantity, 1);
+			}
+
+			if ($new_quantity[0] === '<') {
+				$new_quantity = $basketItem->getQuantity() - substr($new_quantity, 1);
+			}
+
+			if ($new_quantity < 1) {
+				$new_quantity = 1;
+			}
+
 			// Обновление товара в корзине
-			$basketItem->setField('QUANTITY', $basketItem->getQuantity() + $quantity);
+			$basketItem->setField('QUANTITY', $new_quantity);
 			$basket->save();
 		} else {
+			$new_quantity = $quantity;
+
+			if ($new_quantity[0] === '>') {
+				$new_quantity = substr($new_quantity, 1);
+			}
+
+			if ($new_quantity[0] === '<') {
+				$new_quantity = -substr($new_quantity, 1);
+			}
+
+			if ($new_quantity < 1) {
+				$new_quantity = 1;
+			}
+
 			// Добавление товара в корзину
 			$basketItem = $basket->createItem('catalog', $product_id);
 			$basketItem->setFields([
-				'QUANTITY' => $quantity,
+				'QUANTITY' => $new_quantity,
 				'CURRENCY' => CurrencyManager::getBaseCurrency(),
-				'LID' => $this->context->getSite(),
+				'LID' => $site,
 				'PRODUCT_PROVIDER_CLASS' => 'CCatalogProductProvider'
 			]);
 
@@ -275,90 +294,13 @@ class Ion
 
 		return [
 			'status' => true,
-			'result' => $info
+			'result' => $info['result']
 		];
 	}
 
 	/**
-	 * @param $product_id
-	 * @param $quantity
-	 * @param $props
-	 * @return array|null
-	 * @throws Main\ArgumentException
-	 * @throws Main\ArgumentNullException
-	 * @throws Main\ArgumentOutOfRangeException
-	 * @throws Main\ArgumentTypeException
-	 * @throws Main\NotImplementedException
-	 * @throws Main\NotSupportedException
-	 * @throws Main\ObjectNotFoundException
-	 */
-	public function changeProductQuantityInBasket($product_id, $quantity = 1, $props = []): ?array
-	{
-		if (!$product_id) {
-			return [
-				'status' => false,
-				'result' => null
-			];
-		}
-
-		if ($quantity === null) {
-			$quantity = 1;
-		}
-
-		if ($props === null) {
-			$props = [];
-		}
-
-		$msg['status'] = false;
-
-		$basket = Basket::loadItemsForFUser(Fuser::getId(), $this->context->getSite());
-
-		if ($basketItem = $basket->getExistsItem('catalog', $product_id, $props)) {
-			// Обновление товара в корзине
-			$basketItem->setField('QUANTITY', $quantity);
-			$basket->save();
-
-			$msg['status'] = true;
-			$msg['action'] = 'update';
-		} else {
-			// Добавление товара в корзину
-			$basketItem = $basket->createItem('catalog', $product_id);
-			$basketItem->setFields(
-				[
-					'QUANTITY' => $quantity,
-					'CURRENCY' => CurrencyManager::getBaseCurrency(),
-					'LID' => $this->context->getSite(),
-					'PRODUCT_PROVIDER_CLASS' => 'CCatalogProductProvider'
-				]
-			);
-
-			// Добавление свойств товару
-			foreach ($props as $prop) {
-				$collection = $basketItem->getPropertyCollection();
-
-				$item = $collection->createItem();
-				$item->setFields([
-					'NAME' => $prop['NAME'],
-					'CODE' => $prop['CODE'],
-					'VALUE' => $prop['VALUE'],
-				]);
-			}
-
-			$basket->save();
-
-			$msg['status'] = true;
-			$msg['action'] = 'add';
-		}
-
-		return [
-			'status' => true,
-			'result' => $msg
-		];
-	}
-
-	/**
-	 * @param $product_id
-	 * @param $props
+	 * @param int $product_id
+	 * @param array $props
 	 * @return array|null
 	 * @throws Main\ArgumentException
 	 * @throws Main\ArgumentNullException
@@ -367,7 +309,7 @@ class Ion
 	 * @throws Main\NotImplementedException
 	 * @throws Main\ObjectNotFoundException
 	 */
-	public function removeProductFromBasket($product_id, $props = []): ?array
+	public function removeProductFromBasket(int $product_id, array $props = []): ?array
 	{
 		if (!$product_id) {
 			return [
@@ -376,7 +318,7 @@ class Ion
 			];
 		}
 
-		$msg['status'] = false;
+		$status = false;
 
 		if ($props === null) {
 			$props = [];
@@ -389,12 +331,12 @@ class Ion
 			$basketItem->delete();
 			$basket->save();
 
-			$msg['status'] = true;
+			$status = true;
 		}
 
 		return [
 			'status' => true,
-			'result' => $msg
+			'result' => $status
 		];
 	}
 
@@ -660,10 +602,10 @@ class Ion
 	}
 
 	/**
-	 * @param $pay_system_id
-	 * @param $delivery_service_id
-	 * @param $person_type_id
-	 * @param $values
+	 * @param int $pay_system_id
+	 * @param int $delivery_service_id
+	 * @param int $person_type_id
+	 * @param array $values
 	 * @return array|null
 	 * @throws Main\ArgumentException
 	 * @throws Main\ArgumentNullException
@@ -676,7 +618,8 @@ class Ion
 	 * @throws Main\ObjectPropertyException
 	 * @throws Main\SystemException
 	 */
-	public function createOrder($pay_system_id, $delivery_service_id, $person_type_id, $values): ?array
+	public function createOrder(int $pay_system_id, int $delivery_service_id, int $person_type_id, array $values):
+	?array
 	{
 		if (!$pay_system_id
 			|| !$person_type_id
@@ -760,12 +703,12 @@ class Ion
 	}
 
 	/**
-	 * @param $name
+	 * @param string $name
 	 * @param int $page
 	 * @param int $page_size
 	 * @return array|null
 	 */
-	public function searchItemsByName($name, $page = 1, $page_size = 10): ?array
+	public function searchItemsByName(string $name, int $page = 1, int $page_size = 10): ?array
 	{
 		if ($GLOBALS['ION']['SEARCH_IBLOCK_ID'] === null
 			|| $name === null
@@ -846,7 +789,7 @@ class Ion
 	 * @throws Main\ObjectPropertyException
 	 * @throws Main\SystemException
 	 */
-	public function getViewedProducts($count = 10): ?array
+	public function getViewedProducts(int $count = 10): ?array
 	{
 		$products = [];
 
@@ -872,15 +815,15 @@ class Ion
 	}
 
 	/**
-	 * @param $product_id
-	 * @param $element_id
+	 * @param int $product_id
+	 * @param int $element_id
 	 * @param int $view_count
 	 * @return array|null
 	 * @throws Main\ArgumentException
 	 * @throws Main\ObjectPropertyException
 	 * @throws Main\SystemException
 	 */
-	public function addProductViewCount($product_id, $element_id, $view_count = 1): ?array
+	public function addProductViewCount(int $product_id, int $element_id, int $view_count = 1): ?array
 	{
 		if ($product_id === null
 			|| $element_id === null
