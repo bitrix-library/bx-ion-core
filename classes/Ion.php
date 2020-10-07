@@ -360,14 +360,15 @@ class Ion
 
 		$basket = Basket::loadItemsForFUser($fuser, $this->context->getSite());
 
-		// <DISCOUNTS> : apply
+		/*
+		 * Discounts
+		 */
 		$discounts_context = new Discount\Context\Fuser($fuser);
 		$discounts = Discount::buildFromBasket($basket, $discounts_context);
 		if ($discounts !== null) {
 			$result = $discounts->calculate()->getData();
 			$basket->applyDiscount($result['BASKET_ITEMS']);
 		}
-		// </DISCOUNTS>
 
 		$basket_items = $basket->getBasketItems();
 
@@ -457,14 +458,15 @@ class Ion
 
 		$basket = Basket::loadItemsForFUser(Fuser::getId(), $this->context->getSite());
 
-		// <DISCOUNTS> : apply
+		/*
+		 * Discounts
+		 */
 		$discounts_context = new Discount\Context\Fuser(Fuser::getId());
 		$discounts = Discount::buildFromBasket($basket, $discounts_context);
 		if ($discounts !== null) {
 			$result = $discounts->calculate()->getData();
 			$basket->applyDiscount($result['BASKET_ITEMS']);
 		}
-		// </DISCOUNTS>
 
 		$info['PRICE'] = $basket->getPrice();
 		$info['PRICE_WITHOUT_DISCOUNTS'] = $basket->getBasePrice();
@@ -518,18 +520,20 @@ class Ion
 	 */
 	public function getOrderFormGroups(): ?array
 	{
-		// <PROPS>
+		/*
+		 * Props
+		 */
 		$props = array();
 		$db_list = \CSaleOrderProps::GetList(['SORT' => 'ASC', 'ID' => 'ASC'], ['ACTIVE' => 'Y'], false, false, ['ID', 'CODE', 'PROPS_GROUP_ID', 'NAME', 'REQUIED', 'TYPE']);
 		while ($db_el = $db_list->GetNext()) {
 			$props[] = $db_el;
 		}
 		unset($db_list);
-		// </PROPS>
 
-		// <DELIVERY>
+		/*
+		 * Delivery
+		 */
 		$delivery = Delivery\Services\Manager::getActiveList();
-
 		foreach ($delivery as $service) {
 			if ($service['CLASS_NAME'] === '\Bitrix\Sale\Delivery\Services\EmptyDeliveryService') {
 				continue;
@@ -541,9 +545,10 @@ class Ion
 		}
 
 		$delivery_group = ['ID' => 'DELIVERY', 'NAME' => 'DELIVERY', 'SORT' => '200'];
-		// </DELIVERY>
 
-		// <PAYMENT>
+		/*
+		 * Payment
+		 */
 		$payment = array();
 		$db_list = Manager::getList(
 			[
@@ -557,17 +562,16 @@ class Ion
 			$payment[] = $db_el;
 		}
 		unset($db_list);
-
 		foreach ($payment as $system) {
 			$system['PROPS_GROUP_ID'] = 'PAYMENT';
 			$system['LOGOTIP'] = \CFile::ResizeImageGet($system['LOGOTIP'], ['width' => 500, 'height' => 500], BX_RESIZE_IMAGE_PROPORTIONAL, true);
 			$props[] = $system;
 		}
-
 		$payment_group = ['ID' => 'PAYMENT', 'NAME' => 'PAYMENT', 'SORT' => '100'];
-		// </PAYMENT>
 
-		// <GROUPS>
+		/*
+		 * Groups
+		 */
 		$groups = array();
 		$db_list = \CSaleOrderPropsGroup::GetList(['SORT' => 'ASC'], ['ACTIVE' => 'Y', '!ID' => $GLOBALS['ION']['DENY_GROUPS_IDS']]);
 		while ($db_el = $db_list->GetNext()) {
@@ -576,9 +580,10 @@ class Ion
 		unset($db_list);
 		$groups[] = $delivery_group;
 		$groups[] = $payment_group;
-		// </GROUPS>
 
-		// <PROPS TO GROUPS>
+		/*
+		 * Props to Groups
+		 */
 		foreach ($groups as $key => &$group) {
 			foreach ($props as $prop) {
 				if ($prop['PROPS_GROUP_ID'] === $group['ID']) {
@@ -593,7 +598,6 @@ class Ion
 		usort($groups, static function ($a, $b) {
 			return $a['SORT'] - $b['SORT'];
 		});
-		// </PROPS TO GROUPS>
 
 		return [
 			'status' => true,
@@ -632,16 +636,18 @@ class Ion
 			];
 		}
 
-		// <SITE>
+		/*
+		 * Site
+		 */
 		$site_id = $this->context->getSite();
-		// </SITE>
 
-		// <USER>
+		/*
+		 * User
+		 */
 		$user_id = \CUser::GetID();
 		if ($user_id === null) {
 			$user_id = \CSaleUser::GetAnonymousUserID();
 		}
-		// </USER>
 
 		$allowed_fields = ['NAME', 'LASTNAME', 'EMAIL', 'PHONE', 'COMMENT'];
 		if (is_array($GLOBALS['ION']['ORDER_ALLOWED_FIELDS'])) {
@@ -654,22 +660,26 @@ class Ion
 
 		$order->setField('USER_DESCRIPTION', $values['USER_DESCRIPTION']);
 
-		// <PROPS>
+		/*
+		 * Props
+		 */
 		$propertyCollection = $order->getPropertyCollection();
 		foreach ($propertyCollection as $el) {
 			if ($values[$el->getField('CODE')] && in_array($el->getField('CODE'), $allowed_fields)) {
 				$el->setValue($values[$el->getField('CODE')]);
 			}
 		}
-		// </PROPS>
 
-		// <BASKET>
+		/*
+		 * Basket
+		 */
 		$basketLoad = Sale\Basket::loadItemsForFUser(CSaleBasket::GetBasketUserID(), $site_id);
 		$basketItems = $basketLoad->getOrderableItems();
 		$order->setBasket($basketItems);
-		// </BASKET>
 
-		// <DELIVERY>
+		/*
+		 * Delivery
+		 */
 		$shipmentCollection = $order->getShipmentCollection();
 		$shipment = $shipmentCollection->createItem(
 			Delivery\Services\Manager::getObjectById($delivery_service_id)
@@ -679,16 +689,16 @@ class Ion
 			$item = $shipmentItemCollection->createItem($basketItem);
 			$item->setQuantity($basketItem->getQuantity());
 		}
-		// </DELIVERY>
 
-		// <PAYMENT>
+		/*
+		 * Payment
+		 */
 		$paymentCollection = $order->getPaymentCollection();
 		$payment = $paymentCollection->createItem(
 			Manager::getObjectById($pay_system_id)
 		);
 		$payment->setField('SUM', $order->getPrice());
 		$payment->setField('CURRENCY', $order->getCurrency());
-		// </PAYMENT>
 
 		if ($GLOBALS['ION']['MAKE_ORDER_HANDLER'] instanceof Closure) {
 			$GLOBALS['ION']['MAKE_ORDER_HANDLER']($order);
