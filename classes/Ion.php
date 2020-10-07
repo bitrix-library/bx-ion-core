@@ -131,7 +131,7 @@ class Ion
 					break;
 
 				case 'get_closure':
-					$id = $this->request['id'];
+					$id = (int)$this->request['id'];
 					$response = $this->getClosure($id);
 					break;
 
