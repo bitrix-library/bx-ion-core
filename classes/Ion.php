@@ -69,6 +69,23 @@ class Ion
 		$GLOBALS['ION']['CLOSURES'] = null;
 	}
 
+	/**
+	 * @return bool
+	 * @throws Main\LoaderException
+	 */
+	private function loadModules(): bool
+	{
+		$iblockInc = Loader::includeModule('iblock');
+		$catalogInc = Loader::includeModule('catalog');
+		$saleInc = Loader::includeModule('sale');
+
+		if ($iblockInc && $catalogInc && $saleInc) {
+			return true;
+		}
+
+		return false;
+	}
+
 	public static function connectOnProlog(): void
 	{
 		$instance = self::getInstance();
@@ -98,6 +115,7 @@ class Ion
 	 * @throws Main\NotSupportedException
 	 * @throws Main\ObjectException
 	 * @throws Main\ObjectNotFoundException
+	 * @throws Main\ObjectPropertyException
 	 * @throws Main\SystemException
 	 */
 	public function registerRequestHandlers(): void
@@ -105,11 +123,7 @@ class Ion
 		if ($this->request['ion'] !== null) {
 			$GLOBALS['APPLICATION']->RestartBuffer();
 
-			$iblockInc = Loader::includeModule('iblock');
-			$catalogInc = Loader::includeModule('catalog');
-			$saleInc = Loader::includeModule('sale');
-
-			if (!$iblockInc || !$catalogInc || !$saleInc) {
+			if (!$this->loadModules()) {
 				return;
 			}
 
