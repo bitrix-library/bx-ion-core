@@ -6,6 +6,7 @@ use Closure;
 use CCurrency;
 use CCurrencyLang;
 use CIBlockElement;
+use CSaleBasket;
 use Bitrix\Main;
 use Bitrix\Main\Loader;
 use Bitrix\Main\Application;
@@ -30,7 +31,6 @@ use Bitrix\Catalog\CatalogViewedProductTable;
  */
 class Ion
 {
-
 	private static $instance;
 	private $context;
 	private $request;
@@ -42,10 +42,11 @@ class Ion
 	 */
 	public static function getInstance(): self
 	{
-		if (static::$instance === null) {
-			static::$instance = new static();
+		if (self::$instance === null) {
+			self::$instance = new self();
 		}
-		return static::$instance;
+
+		return self::$instance;
 	}
 
 	/**
@@ -104,53 +105,61 @@ class Ion
 		if ($this->request['ion'] !== null) {
 			$GLOBALS['APPLICATION']->RestartBuffer();
 
-			$result = null;
+			$iblockInc = Loader::includeModule('iblock');
+			$catalogInc = Loader::includeModule('catalog');
+			$saleInc = Loader::includeModule('sale');
+
+			if (!$iblockInc || !$catalogInc || !$saleInc) {
+				return;
+			}
+
+			$response = null;
 
 			switch ($this->request['ion']) {
 				case 'get_ion_status':
-					$result = $this->getIonStatus();
+					$response = $this->getIonStatus();
 					break;
 
 				case 'get_closure':
 					$id = $this->request['id'];
-					$result = $this->getClosure($id);
+					$response = $this->getClosure($id);
 					break;
 
 				case 'add_product_to_basket':
 					$product_id = (int)$this->request['product_id'];
 					$quantity = (int)$this->request['quantity'];
 					$props = $this->request['props'];
-					$result = $this->addProductToBasket($product_id, $quantity, $props);
+					$response = $this->addProductToBasket($product_id, $quantity, $props);
 					break;
 
 				case 'change_product_quantity_in_basket':
 					$product_id = (int)$this->request['product_id'];
 					$quantity = (int)$this->request['quantity'];
 					$props = $this->request['props'];
-					$result = $this->changeProductQuantityInBasket($product_id, $quantity, $props);
+					$response = $this->changeProductQuantityInBasket($product_id, $quantity, $props);
 					break;
 
 				case 'remove_product_from_basket':
 					$product_id = (int)$this->request['product_id'];
 					$props = $this->request['props'];
-					$result = $this->removeProductFromBasket($product_id, $props);
+					$response = $this->removeProductFromBasket($product_id, $props);
 					break;
 
 				case 'get_items_from_basket':
-					$result = $this->getItemsFromBasket();
+					$response = $this->getItemsFromBasket();
 					break;
 
 				case 'get_basket_info':
-					$result = $this->getBasketInfo();
+					$response = $this->getBasketInfo();
 					break;
 
 				case 'get_currency_format':
 					$price = (float)$this->request['price'];
-					$result = $this->getCurrencyFormat($price);
+					$response = $this->getCurrencyFormat($price);
 					break;
 
 				case 'get_order_form_groups':
-					$result = $this->getOrderFormGroups();
+					$response = $this->getOrderFormGroups();
 					break;
 
 				case 'order_make_order':
@@ -158,62 +167,69 @@ class Ion
 					$pay_system_id = (int)$this->request["pay_system_id"];
 					$person_type_id = (int)$this->request["person_type_id"];
 					$values = ArrayHelper::mapToArray(json_decode($this->request["values"], true));
-					$result = $this->createOrder($pay_system_id, $delivery_service_id, $person_type_id, $values);
+					$response = $this->createOrder($pay_system_id, $delivery_service_id, $person_type_id, $values);
 					break;
 
 				case 'search_items_by_name':
-					$result = $this->searchItemsByName($this->request["name"], $this->request["page"]);
+					$response = $this->searchItemsByName($this->request["name"], $this->request["page"]);
 					break;
 			}
 
-			echo Json::encode($result);
+			echo Json::encode($response);
 		}
 	}
 
 	/**
-	 * @return array
+	 * @return array|null
 	 */
-	public function getIonStatus(): array
+	public function getIonStatus(): ?array
 	{
 		return [
-			'Ion' => [
-				'status' => true
-			]
+			'status' => true,
+			'result' => null
 		];
 	}
 
 	/**
 	 * @param $id
-	 * @return null
+	 * @return array|null
 	 */
-	public function getClosure($id)
+	public function getClosure($id): ?array
 	{
 		if ($GLOBALS['ION']['CLOSURES'][$id] instanceof Closure) {
-			return $GLOBALS['ION']['CLOSURES'][$id]();
+			return [
+				'status' => true,
+				'result' => $GLOBALS['ION']['CLOSURES'][$id]()
+			];
 		}
 
-		return null;
+		return [
+			'status' => false,
+			'result' => null
+		];
 	}
 
 	/**
 	 * @param $product_id
 	 * @param $quantity
 	 * @param $props
-	 * @return array
+	 * @return array|null
 	 * @throws Main\ArgumentException
 	 * @throws Main\ArgumentNullException
 	 * @throws Main\ArgumentOutOfRangeException
 	 * @throws Main\ArgumentTypeException
 	 * @throws Main\InvalidOperationException
-	 * @throws Main\LoaderException
 	 * @throws Main\NotImplementedException
 	 * @throws Main\NotSupportedException
 	 * @throws Main\ObjectNotFoundException
 	 */
-	public function addProductToBasket($product_id, $quantity, $props): array
+	public function addProductToBasket($product_id, $quantity = 1, $props = []): ?array
 	{
-		if (!$product_id || !Loader::includeModule('sale')) {
-			die();
+		if (!$product_id) {
+			return [
+				'status' => false,
+				'result' => null
+			];
 		}
 
 		if ($quantity === null) {
@@ -257,27 +273,32 @@ class Ion
 
 		$info = $this->getBasketInfo();
 
-		return $info;
+		return [
+			'status' => true,
+			'result' => $info
+		];
 	}
 
 	/**
 	 * @param $product_id
 	 * @param $quantity
 	 * @param $props
-	 * @return mixed
+	 * @return array|null
 	 * @throws Main\ArgumentException
 	 * @throws Main\ArgumentNullException
 	 * @throws Main\ArgumentOutOfRangeException
 	 * @throws Main\ArgumentTypeException
-	 * @throws Main\LoaderException
 	 * @throws Main\NotImplementedException
 	 * @throws Main\NotSupportedException
 	 * @throws Main\ObjectNotFoundException
 	 */
-	public function changeProductQuantityInBasket($product_id, $quantity, $props)
+	public function changeProductQuantityInBasket($product_id, $quantity = 1, $props = []): ?array
 	{
-		if (!$product_id || !Loader::includeModule('sale')) {
-			die();
+		if (!$product_id) {
+			return [
+				'status' => false,
+				'result' => null
+			];
 		}
 
 		if ($quantity === null) {
@@ -329,25 +350,30 @@ class Ion
 			$msg['action'] = 'add';
 		}
 
-		return $msg;
+		return [
+			'status' => true,
+			'result' => $msg
+		];
 	}
 
 	/**
 	 * @param $product_id
 	 * @param $props
-	 * @return mixed
+	 * @return array|null
 	 * @throws Main\ArgumentException
 	 * @throws Main\ArgumentNullException
 	 * @throws Main\ArgumentOutOfRangeException
 	 * @throws Main\ArgumentTypeException
-	 * @throws Main\LoaderException
 	 * @throws Main\NotImplementedException
 	 * @throws Main\ObjectNotFoundException
 	 */
-	public function removeProductFromBasket($product_id, $props)
+	public function removeProductFromBasket($product_id, $props = []): ?array
 	{
-		if (!$product_id || !Loader::includeModule('sale')) {
-			die();
+		if (!$product_id) {
+			return [
+				'status' => false,
+				'result' => null
+			];
 		}
 
 		$msg['status'] = false;
@@ -366,29 +392,24 @@ class Ion
 			$msg['status'] = true;
 		}
 
-		return $msg;
+		return [
+			'status' => true,
+			'result' => $msg
+		];
 	}
 
 	/**
 	 * @param null $fuser
-	 * @return array
+	 * @return array|null
 	 * @throws Main\ArgumentException
 	 * @throws Main\ArgumentNullException
 	 * @throws Main\ArgumentOutOfRangeException
 	 * @throws Main\ArgumentTypeException
 	 * @throws Main\InvalidOperationException
-	 * @throws Main\LoaderException
 	 * @throws Main\NotImplementedException
 	 */
-	public function getItemsFromBasket($fuser = null): array
+	public function getItemsFromBasket($fuser = null): ?array
 	{
-		if (!Loader::includeModule('sale')
-			|| !Loader::includeModule('iblock')
-			|| !Loader::includeModule('sale')
-		) {
-			die();
-		}
-
 		if ($fuser === null) {
 			$fuser = Fuser::getId();
 		}
@@ -473,28 +494,24 @@ class Ion
 
 		unset($db_basket_list);
 
-		return $items;
+		return [
+			'status' => true,
+			'result' => $items
+		];
 	}
 
 	/**
-	 * @return array
+	 * @return array|null
 	 * @throws Main\ArgumentException
 	 * @throws Main\ArgumentNullException
 	 * @throws Main\ArgumentOutOfRangeException
 	 * @throws Main\ArgumentTypeException
 	 * @throws Main\InvalidOperationException
-	 * @throws Main\LoaderException
 	 * @throws Main\NotImplementedException
 	 */
-	public function getBasketInfo(): array
+	public function getBasketInfo(): ?array
 	{
-		if (!Loader::includeModule('sale')
-			|| !Loader::includeModule('iblock')
-		) {
-			die();
-		}
-
-		$info = array();
+		$info = [];
 
 		$basket = Basket::loadItemsForFUser(Fuser::getId(), $this->context->getSite());
 
@@ -517,22 +534,27 @@ class Ion
 		$info['ITEMS_QUANTITY'] = $basket->getQuantityList();
 		$info['QUANTITY'] = count($info['ITEMS_QUANTITY']);
 
-		return $info;
+		return [
+			'status' => true,
+			'result' => $info
+		];
 	}
 
 	/**
 	 * @param $price
 	 * @param null $currency
-	 * @return array
-	 * @throws Main\LoaderException
+	 * @return array|null
 	 */
-	public function getCurrencyFormat($price, $currency = null): array
+	public function getCurrencyFormat($price, $currency = null): ?array
 	{
-		if (!$price || !Loader::includeModule('sale')) {
-			die();
+		if (!$price) {
+			return [
+				'status' => false,
+				'result' => null
+			];
 		}
 
-		$msg = array();
+		$msg = [];
 		$msg['status'] = false;
 
 		if (!$currency) {
@@ -542,20 +564,18 @@ class Ion
 		$msg['FORMATTED_PRICE'] = CCurrencyLang::CurrencyFormat($price, $currency);
 		$msg['status'] = true;
 
-		return $msg;
+		return [
+			'status' => true,
+			'result' => $msg
+		];
 	}
 
 	/**
-	 * @return array
+	 * @return array|null
 	 * @throws Main\ArgumentException
-	 * @throws Main\LoaderException
 	 */
-	public function getOrderFormGroups(): array
+	public function getOrderFormGroups(): ?array
 	{
-		if (!Loader::includeModule('sale')) {
-			die();
-		}
-
 		// <PROPS>
 		$props = array();
 		$db_list = \CSaleOrderProps::GetList(['SORT' => 'ASC', 'ID' => 'ASC'], ['ACTIVE' => 'Y'], false, false, ['ID', 'CODE', 'PROPS_GROUP_ID', 'NAME', 'REQUIED', 'TYPE']);
@@ -633,7 +653,10 @@ class Ion
 		});
 		// </PROPS TO GROUPS>
 
-		return $groups;
+		return [
+			'status' => true,
+			'result' => $groups
+		];
 	}
 
 	/**
@@ -641,12 +664,11 @@ class Ion
 	 * @param $delivery_service_id
 	 * @param $person_type_id
 	 * @param $values
-	 * @return int
+	 * @return array|null
 	 * @throws Main\ArgumentException
 	 * @throws Main\ArgumentNullException
 	 * @throws Main\ArgumentOutOfRangeException
 	 * @throws Main\ArgumentTypeException
-	 * @throws Main\LoaderException
 	 * @throws Main\NotImplementedException
 	 * @throws Main\NotSupportedException
 	 * @throws Main\ObjectException
@@ -654,15 +676,17 @@ class Ion
 	 * @throws Main\ObjectPropertyException
 	 * @throws Main\SystemException
 	 */
-	public function createOrder($pay_system_id, $delivery_service_id, $person_type_id, $values): int
+	public function createOrder($pay_system_id, $delivery_service_id, $person_type_id, $values): ?array
 	{
 		if (!$pay_system_id
 			|| !$person_type_id
 			|| !$values
 			|| !$delivery_service_id
-			|| !Loader::includeModule('sale')
 		) {
-			die();
+			return [
+				'status' => false,
+				'result' => null
+			];
 		}
 
 		// <SITE>
@@ -697,7 +721,7 @@ class Ion
 		// </PROPS>
 
 		// <BASKET>
-		$basketLoad = Sale\Basket::loadItemsForFUser(\CSaleBasket::GetBasketUserID(), $site_id);
+		$basketLoad = Sale\Basket::loadItemsForFUser(CSaleBasket::GetBasketUserID(), $site_id);
 		$basketItems = $basketLoad->getOrderableItems();
 		$order->setBasket($basketItems);
 		// </BASKET>
@@ -728,25 +752,30 @@ class Ion
 		}
 
 		$order->save();
-		return $order->GetId();
+
+		return [
+			'status' => true,
+			'result' => $order->GetId()
+		];
 	}
 
 	/**
 	 * @param $name
 	 * @param int $page
 	 * @param int $page_size
-	 * @return array
-	 * @throws Main\LoaderException
+	 * @return array|null
 	 */
-	public function searchItemsByName($name, $page = 1, $page_size = 10): array
+	public function searchItemsByName($name, $page = 1, $page_size = 10): ?array
 	{
 		if ($GLOBALS['ION']['SEARCH_IBLOCK_ID'] === null
 			|| $name === null
 			|| $page === null
 			|| $page_size === null
-			|| !Loader::includeModule('iblock')
 		) {
-			die();
+			return [
+				'status' => false,
+				'result' => null
+			];
 		}
 
 		$data = array(
@@ -804,24 +833,22 @@ class Ion
 			array()
 		);
 
-		return $data;
+		return [
+			'status' => true,
+			'result' => $data
+		];
 	}
 
 	/**
 	 * @param int $count
-	 * @return array
+	 * @return array|null
 	 * @throws Main\ArgumentException
-	 * @throws Main\LoaderException
 	 * @throws Main\ObjectPropertyException
 	 * @throws Main\SystemException
 	 */
-	public function getViewedProducts($count = 10): array
+	public function getViewedProducts($count = 10): ?array
 	{
-		if (!Loader::includeModule('catalog')) {
-			die();
-		}
-
-		$products = array();
+		$products = [];
 
 		$db_list = CatalogViewedProductTable::getList(
 			array(
@@ -838,27 +865,31 @@ class Ion
 			$products[] = $db_el;
 		}
 
-		return $products;
+		return [
+			'status' => true,
+			'result' => $products
+		];
 	}
 
 	/**
 	 * @param $product_id
 	 * @param $element_id
 	 * @param int $view_count
-	 * @return Main\ORM\Data\AddResult|Main\ORM\Data\UpdateResult
+	 * @return array|null
 	 * @throws Main\ArgumentException
-	 * @throws Main\LoaderException
 	 * @throws Main\ObjectPropertyException
 	 * @throws Main\SystemException
 	 */
-	public function addProductViewCount($product_id, $element_id, $view_count = 1)
+	public function addProductViewCount($product_id, $element_id, $view_count = 1): ?array
 	{
 		if ($product_id === null
 			|| $element_id === null
 			|| $view_count === null
-			|| !Loader::includeModule('catalog')
 		) {
-			die();
+			return [
+				'status' => false,
+				'result' => null
+			];
 		}
 
 		$result = null;
@@ -895,22 +926,20 @@ class Ion
 			);
 		}
 
-		return $result;
+		return [
+			'status' => true,
+			'result' => $result
+		];
 	}
 
 	/**
-	 * @return bool
-	 * @throws Main\LoaderException
+	 * @return array|null
 	 */
-	public function removeProductsFromBasket(): bool
+	public function removeProductsFromBasket(): ?array
 	{
-		if (!Loader::includeModule('sale')) {
-			die();
-		}
-		if (!Loader::includeModule('catalog')) {
-			die();
-		}
-
-		return \CSaleBasket::DeleteAll(Fuser::getId());
+		return [
+			'status' => true,
+			'result' => CSaleBasket::DeleteAll(Fuser::getId())
+		];
 	}
 }
