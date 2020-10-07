@@ -79,11 +79,7 @@ class Ion
 		$catalogInc = Loader::includeModule('catalog');
 		$saleInc = Loader::includeModule('sale');
 
-		if ($iblockInc && $catalogInc && $saleInc) {
-			return true;
-		}
-
-		return false;
+		return $iblockInc && $catalogInc && $saleInc;
 	}
 
 	public static function connectOnProlog(): void
