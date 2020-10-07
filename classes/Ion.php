@@ -173,7 +173,7 @@ class Ion
 					$delivery_service_id = (int)$this->request["delivery_service_id"];
 					$pay_system_id = (int)$this->request["pay_system_id"];
 					$person_type_id = (int)$this->request["person_type_id"];
-					$values = ArrayHelper::mapToArray(json_decode($this->request["values"], true));
+					$values = json_decode($this->request["values"], true);
 					$response = $this->createOrder($pay_system_id, $delivery_service_id, $person_type_id, $values);
 					break;
 
