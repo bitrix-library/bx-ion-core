@@ -2,6 +2,7 @@
 
 namespace Ion;
 
+use Exception;
 use Closure;
 use CCurrency;
 use CCurrencyLang;
@@ -187,9 +188,9 @@ class Ion
 	}
 
 	/**
-	 * @return array|null
+	 * @return array
 	 */
-	public function getIonStatus(): ?array
+	public function getIonStatus(): array
 	{
 		return [
 			'status' => true,
@@ -199,9 +200,9 @@ class Ion
 
 	/**
 	 * @param int $id
-	 * @return array|null
+	 * @return array
 	 */
-	public function getClosure(int $id): ?array
+	public function getClosure(int $id): array
 	{
 		if ($GLOBALS['ION']['CLOSURES'][$id] instanceof Closure) {
 			return [
@@ -216,102 +217,106 @@ class Ion
 		];
 	}
 
-	/**
-	 * @param int $product_id
-	 * @param string $quantity
-	 * @param array $props
-	 * @return array|null
-	 * @throws Main\ArgumentException
-	 * @throws Main\ArgumentNullException
-	 * @throws Main\ArgumentOutOfRangeException
-	 * @throws Main\ArgumentTypeException
-	 * @throws Main\InvalidOperationException
-	 * @throws Main\NotImplementedException
-	 * @throws Main\NotSupportedException
-	 * @throws Main\ObjectNotFoundException
-	 */
-	public function setProductInBasket(int $product_id, string $quantity, array $props): ?array
+    /**
+     * @param int $product_id
+     * @param string $quantity
+     * @param array $props
+     * @return array
+     */
+	public function setProductInBasket(int $product_id, string $quantity, array $props): array
 	{
-		if ($product_id === null) {
-			return [
-				'status' => false,
-				'result' => null
-			];
-		}
+        try {
+            $site = $this->context->getSite();
 
-		$site = $this->context->getSite();
+            $basket = Basket::loadItemsForFUser(Fuser::getId(), $site);
 
-		$basket = Basket::loadItemsForFUser(Fuser::getId(), $site);
+            $new_quantity = $quantity;
 
-		if ($basketItem = $basket->getExistsItem('catalog', $product_id, $props)) {
-			$new_quantity = $quantity;
+            if ($basketItem = $basket->getExistsItem('catalog', $product_id, $props)) {
+                if ($new_quantity[0] === '>') {
+                    $new_quantity = $basketItem->getQuantity() + substr($new_quantity, 1);
+                }
 
-			if ($new_quantity[0] === '>') {
-				$new_quantity = $basketItem->getQuantity() + substr($new_quantity, 1);
-			}
+                if ($new_quantity[0] === '<') {
+                    $new_quantity = $basketItem->getQuantity() - substr($new_quantity, 1);
+                }
 
-			if ($new_quantity[0] === '<') {
-				$new_quantity = $basketItem->getQuantity() - substr($new_quantity, 1);
-			}
+                if ($new_quantity < 1) {
+                    $new_quantity = 1;
+                }
 
-			if ($new_quantity < 1) {
-				$new_quantity = 1;
-			}
+                // Обновление товара в корзине
+                $basketItem->setField('QUANTITY', $new_quantity);
+            } else {
+                if ($new_quantity[0] === '>') {
+                    $new_quantity = substr($new_quantity, 1);
+                }
 
-			// Обновление товара в корзине
-			$basketItem->setField('QUANTITY', $new_quantity);
-			$basket->save();
-		} else {
-			$new_quantity = $quantity;
+                if ($new_quantity[0] === '<') {
+                    $new_quantity = -substr($new_quantity, 1);
+                }
 
-			if ($new_quantity[0] === '>') {
-				$new_quantity = substr($new_quantity, 1);
-			}
+                if ($new_quantity < 1) {
+                    $new_quantity = 1;
+                }
 
-			if ($new_quantity[0] === '<') {
-				$new_quantity = -substr($new_quantity, 1);
-			}
+                // Добавление товара в корзину
+                $basketItem = $basket->createItem('catalog', $product_id);
+                $basketItem->setFields([
+                    'QUANTITY' => $new_quantity,
+                    'CURRENCY' => CurrencyManager::getBaseCurrency(),
+                    'LID' => $site,
+                    'PRODUCT_PROVIDER_CLASS' => 'CCatalogProductProvider'
+                ]);
 
-			if ($new_quantity < 1) {
-				$new_quantity = 1;
-			}
+                // Добавление свойств товару
+                foreach ($props as $prop) {
+                    $collection = $basketItem->getPropertyCollection();
 
-			// Добавление товара в корзину
-			$basketItem = $basket->createItem('catalog', $product_id);
-			$basketItem->setFields([
-				'QUANTITY' => $new_quantity,
-				'CURRENCY' => CurrencyManager::getBaseCurrency(),
-				'LID' => $site,
-				'PRODUCT_PROVIDER_CLASS' => 'CCatalogProductProvider'
-			]);
+                    $item = $collection->createItem();
+                    $item->setFields([
+                        'NAME' => $prop['NAME'],
+                        'CODE' => $prop['CODE'],
+                        'VALUE' => $prop['VALUE'],
+                    ]);
+                }
+            }
 
-			// Добавление свойств товару
-			foreach ($props as $prop) {
-				$collection = $basketItem->getPropertyCollection();
+            $basket->save();
 
-				$item = $collection->createItem();
-				$item->setFields([
-					'NAME' => $prop['NAME'],
-					'CODE' => $prop['CODE'],
-					'VALUE' => $prop['VALUE'],
-				]);
-			}
+            $basketItem = $basket->getExistsItem('catalog', $product_id, $props);
 
-			$basket->save();
-		}
+            if ((bool)$basketItem && (float)$basketItem->getQuantity() === (float)$new_quantity) {
+                return [
+                    'status' => true,
+                    'result' => [
+                        'message' => 'Товар добавлен в корзину',
+                        'data' => $basketItem->getQuantity()
+                    ],
+                ];
+            }
 
-		$info = $this->getBasketInfo();
-
-		return [
-			'status' => true,
-			'result' => $info['result']
-		];
-	}
+            return [
+                'status' => false,
+                'result' => [
+                    'message' => 'Не удалось изменить количество или добавить товар в корзине',
+                ],
+            ];
+        } catch (Exception $exception) {
+            return [
+                'status' => false,
+                'result' => [
+                    'message' => 'Что-то пошло не так',
+                    'exception' => $exception->getMessage()
+                ]
+            ];
+        }
+    }
 
 	/**
 	 * @param int $product_id
 	 * @param array $props
-	 * @return array|null
+	 * @return array
 	 * @throws Main\ArgumentException
 	 * @throws Main\ArgumentNullException
 	 * @throws Main\ArgumentOutOfRangeException
@@ -319,7 +324,7 @@ class Ion
 	 * @throws Main\NotImplementedException
 	 * @throws Main\ObjectNotFoundException
 	 */
-	public function removeProductFromBasket(int $product_id, array $props = []): ?array
+	public function removeProductFromBasket(int $product_id, array $props = []): array
 	{
 		if (!$product_id) {
 			return [
@@ -352,7 +357,7 @@ class Ion
 
 	/**
 	 * @param null $fuser
-	 * @return array|null
+	 * @return array
 	 * @throws Main\ArgumentException
 	 * @throws Main\ArgumentNullException
 	 * @throws Main\ArgumentOutOfRangeException
@@ -360,7 +365,7 @@ class Ion
 	 * @throws Main\InvalidOperationException
 	 * @throws Main\NotImplementedException
 	 */
-	public function getItemsFromBasket($fuser = null): ?array
+	public function getItemsFromBasket($fuser = null): array
 	{
 		if ($fuser === null) {
 			$fuser = Fuser::getId();
@@ -454,7 +459,7 @@ class Ion
 	}
 
 	/**
-	 * @return array|null
+	 * @return array
 	 * @throws Main\ArgumentException
 	 * @throws Main\ArgumentNullException
 	 * @throws Main\ArgumentOutOfRangeException
@@ -462,7 +467,7 @@ class Ion
 	 * @throws Main\InvalidOperationException
 	 * @throws Main\NotImplementedException
 	 */
-	public function getBasketInfo(): ?array
+	public function getBasketInfo(): array
 	{
 		$info = [];
 
@@ -497,9 +502,9 @@ class Ion
 	/**
 	 * @param $price
 	 * @param null $currency
-	 * @return array|null
+	 * @return array
 	 */
-	public function getCurrencyFormat($price, $currency = null): ?array
+	public function getCurrencyFormat($price, $currency = null): array
 	{
 		if (!$price) {
 			return [
@@ -525,10 +530,10 @@ class Ion
 	}
 
 	/**
-	 * @return array|null
+	 * @return array
 	 * @throws Main\ArgumentException
 	 */
-	public function getOrderFormGroups(): ?array
+	public function getOrderFormGroups(): array
 	{
 		/*
 		 * Props
@@ -620,7 +625,7 @@ class Ion
 	 * @param int $delivery_service_id
 	 * @param int $person_type_id
 	 * @param array $values
-	 * @return array|null
+	 * @return array
 	 * @throws Main\ArgumentException
 	 * @throws Main\ArgumentNullException
 	 * @throws Main\ArgumentOutOfRangeException
@@ -633,7 +638,7 @@ class Ion
 	 * @throws Main\SystemException
 	 */
 	public function createOrder(int $pay_system_id, int $delivery_service_id, int $person_type_id, array $values):
-	?array
+	array
 	{
 		if (!$pay_system_id
 			|| !$person_type_id
@@ -726,9 +731,9 @@ class Ion
 	 * @param string $name
 	 * @param int $page
 	 * @param int $page_size
-	 * @return array|null
+	 * @return array
 	 */
-	public function searchItemsByName(string $name, int $page = 1, int $page_size = 10): ?array
+	public function searchItemsByName(string $name, int $page = 1, int $page_size = 10): array
 	{
 		if ($GLOBALS['ION']['SEARCH_IBLOCK_ID'] === null
 			|| $name === null
@@ -804,12 +809,12 @@ class Ion
 
 	/**
 	 * @param int $count
-	 * @return array|null
+	 * @return array
 	 * @throws Main\ArgumentException
 	 * @throws Main\ObjectPropertyException
 	 * @throws Main\SystemException
 	 */
-	public function getViewedProducts(int $count = 10): ?array
+	public function getViewedProducts(int $count = 10): array
 	{
 		$products = [];
 
@@ -838,12 +843,12 @@ class Ion
 	 * @param int $product_id
 	 * @param int $element_id
 	 * @param int $view_count
-	 * @return array|null
+	 * @return array
 	 * @throws Main\ArgumentException
 	 * @throws Main\ObjectPropertyException
 	 * @throws Main\SystemException
 	 */
-	public function addProductViewCount(int $product_id, int $element_id, int $view_count = 1): ?array
+	public function addProductViewCount(int $product_id, int $element_id, int $view_count = 1): array
 	{
 		if ($product_id === null
 			|| $element_id === null
@@ -896,9 +901,9 @@ class Ion
 	}
 
 	/**
-	 * @return array|null
+	 * @return array
 	 */
-	public function removeProductsFromBasket(): ?array
+	public function removeProductsFromBasket(): array
 	{
 		return [
 			'status' => true,
