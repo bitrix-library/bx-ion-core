@@ -19,30 +19,6 @@ use Twig\Loader\FilesystemLoader;
 class TwigHelper
 {
 	/**
-	 * @param CBitrixComponent $component
-	 * @param array $params
-	 * @param array $envOptions
-	 * @return string
-	 * @throws LoaderError
-	 * @throws RuntimeError
-	 * @throws SyntaxError
-	 */
-	public static function renderComponent(CBitrixComponent $component, array $params, array $envOptions = []): string
-	{
-		global $DOCUMENT_ROOT;
-
-		$componentPath = $component->getPath();
-		$templateName = $component->getTemplateName();
-		$templatePath = $DOCUMENT_ROOT . '/' . $componentPath . '/templates/' . $templateName;
-
-		$loader = new FilesystemLoader($templatePath);
-		$twig = new Environment($loader, $envOptions);
-		$template = $twig->load('template.twig');
-
-		return $template->render($params);
-	}
-
-	/**
 	 * @param string $string
 	 * @param array $params
 	 * @param array $envOptions
@@ -55,6 +31,30 @@ class TwigHelper
 		$loader = new ArrayLoader();
 		$twig = new Environment($loader, $envOptions);
 		$template = $twig->createTemplate($string);
+
+		return $template->render($params);
+	}
+
+	/**
+	 * @param CBitrixComponent $component
+	 * @param array $params
+	 * @param array $envOptions
+	 * @return string
+	 * @throws LoaderError
+	 * @throws RuntimeError
+	 * @throws SyntaxError
+	 */
+	public static function renderBC(CBitrixComponent $component, array $params, array $envOptions = []): string
+	{
+		global $DOCUMENT_ROOT;
+
+		$componentPath = $component->getPath();
+		$templateName = $component->getTemplateName();
+		$templatePath = $DOCUMENT_ROOT . '/' . $componentPath . '/templates/' . $templateName;
+
+		$loader = new FilesystemLoader($templatePath);
+		$twig = new Environment($loader, $envOptions);
+		$template = $twig->load('template.twig');
 
 		return $template->render($params);
 	}
