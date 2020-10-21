@@ -35,6 +35,16 @@ class TwigComponent implements ComponentInterface
 	}
 
 	/**
+	 * @return string
+	 * @throws LoaderError
+	 * @throws SyntaxError
+	 */
+	public function __toString(): string
+	{
+		return $this->render();
+	}
+
+	/**
 	 * @param array|null $params
 	 * @return string
 	 * @throws LoaderError

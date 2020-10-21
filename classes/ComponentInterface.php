@@ -15,6 +15,11 @@ interface ComponentInterface
 	public function __construct(string $template, array $params);
 
 	/**
+	 * @return string
+	 */
+	public function __toString(): string;
+
+	/**
 	 * @param array $params
 	 * @return string
 	 */
