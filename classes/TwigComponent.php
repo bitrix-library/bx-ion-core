@@ -11,7 +11,8 @@ use Twig\Error\SyntaxError;
  * @author https://github.com/amensum
  * @package Ion
  */
-class TwigComponent implements ComponentInterface {
+class TwigComponent implements ComponentInterface
+{
 	/**
 	 * @var string
 	 */
@@ -29,18 +30,8 @@ class TwigComponent implements ComponentInterface {
 	 */
 	public function __construct(string $template = '', array $params = [])
 	{
-		$this->setTemplateFromString($template);
+		$this->setTemplate($template);
 		$this->setParams($params);
-	}
-
-	/**
-	 * @param array|null $params
-	 * @throws LoaderError
-	 * @throws SyntaxError
-	 */
-	public function render(array $params = null): void
-	{
-		echo $this->getRendered($params);
 	}
 
 	/**
@@ -49,7 +40,7 @@ class TwigComponent implements ComponentInterface {
 	 * @throws LoaderError
 	 * @throws SyntaxError
 	 */
-	public function getRendered(array $params = null): string
+	public function render(array $params = null): string
 	{
 		if ($params === null) {
 			return TwigHelper::renderString($this->template, $this->params);
@@ -89,7 +80,7 @@ class TwigComponent implements ComponentInterface {
 	 * @param string $template
 	 * @return $this
 	 */
-	public function setTemplateFromString(string $template): self
+	public function setTemplate(string $template): self
 	{
 		$this->template = $template;
 

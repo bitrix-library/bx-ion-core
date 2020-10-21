@@ -5,7 +5,8 @@ namespace Ion;
 /**
  * Interface ComponentInterface
  */
-interface ComponentInterface {
+interface ComponentInterface
+{
 	/**
 	 * ComponentInterface constructor.
 	 * @param string $template
@@ -15,15 +16,9 @@ interface ComponentInterface {
 
 	/**
 	 * @param array $params
-	 * @return mixed
+	 * @return string
 	 */
-	public function render(array $params): void;
-
-	/**
-	 * @param array $params
-	 * @return mixed
-	 */
-	public function getRendered(array $params): string;
+	public function render(array $params): string;
 
 	/**
 	 * @return array
@@ -45,11 +40,5 @@ interface ComponentInterface {
 	 * @param string $template
 	 * @return mixed
 	 */
-	public function setTemplateFromString(string $template);
-
-	/**
-	 * @param string $pathToTemplate
-	 * @return mixed
-	 */
-	public function setTemplateFromFile(string $pathToTemplate);
+	public function setTemplate(string $template);
 }
