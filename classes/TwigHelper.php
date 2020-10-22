@@ -5,6 +5,7 @@ namespace Ion;
 use Twig\Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\SyntaxError;
+use Twig\Extension\DebugExtension;
 use Twig\Loader\ArrayLoader;
 
 /**
@@ -25,8 +26,16 @@ class TwigHelper
 	 */
 	public static function renderString(string $string, array $params, array $envOptions = []): string
 	{
+		$envDefaults = [
+			'debug' => true
+		];
+		$envOptions = array_merge($envDefaults, $envOptions);
+
 		$loader = new ArrayLoader();
 		$twig = new Environment($loader, $envOptions);
+
+		$twig->addExtension(new DebugExtension());
+
 		$template = $twig->createTemplate($string);
 
 		return $template->render($params);
