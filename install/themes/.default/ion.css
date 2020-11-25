@@ -1,0 +1,16 @@
+#ion_menu_icon {
+    background: url(icons/ion/menu.png) 8px no-repeat;
+    background-size: 20px;
+}
+
+.ion_menu_icon {
+    background: url(icons/ion/menu.png) 8px no-repeat;
+    background-size: 20px;
+}
+
+.ion_primary_field {
+    color: #ffffff;
+    background-color: #c172ed;
+    padding: 4px 10px;
+    border-radius: 2px;
+}

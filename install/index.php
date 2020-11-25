@@ -14,17 +14,18 @@ class Ion extends CModule
 	public $MODULE_VERSION_DATE;
 	public $MODULE_NAME;
 	public $MODULE_DESCRIPTION;
-	public $MODULE_CSS;
+	public $MODULE_DIR;
 
 	/**
 	 * Ion constructor.
 	 */
 	public function __construct()
 	{
-		$this->MODULE_VERSION = "1.4";
-		$this->MODULE_VERSION_DATE = "2020-10-21 18:00";
+		$this->MODULE_VERSION = "1.5.0";
+		$this->MODULE_VERSION_DATE = "2020-11-25 18:00";
 		$this->MODULE_NAME = "ION";
 		$this->MODULE_DESCRIPTION = "Sources: github.com/amensum/ion";
+		$this->MODULE_DIR = dirname(__DIR__);
 	}
 
 	/**
@@ -32,12 +33,24 @@ class Ion extends CModule
 	 */
 	public function InstallFiles(): bool
 	{
-		// CopyDirFiles(
-		// 	$_SERVER["DOCUMENT_ROOT"]."/local/modules/ion/install/components",
-		// 	$_SERVER["DOCUMENT_ROOT"]."/local/components",
-		// 	true,
-		// 	true
-		// );
+		// Admin
+		CopyDirFiles(
+			$this->MODULE_DIR . "/install/admin",
+			$_SERVER["DOCUMENT_ROOT"] . "/bitrix/admin",
+		);
+
+		// Icons
+		CopyDirFiles(
+			$this->MODULE_DIR . "/install/themes/.default/icons/" . $this->MODULE_ID,
+			$_SERVER["DOCUMENT_ROOT"] . "/bitrix/themes/.default/icons/" . $this->MODULE_ID,
+		);
+
+		// Styles
+		CopyDirFiles(
+			$this->MODULE_DIR . "/install/themes/.default",
+			$_SERVER["DOCUMENT_ROOT"] . "/bitrix/themes/.default",
+		);
+
 		return true;
 	}
 
@@ -46,7 +59,24 @@ class Ion extends CModule
 	 */
 	public function UnInstallFiles(): bool
 	{
-		// DeleteDirFilesEx("/local/components/ion");
+		// Admin
+		DeleteDirFiles(
+			$this->MODULE_DIR . "/install/admin",
+			$_SERVER["DOCUMENT_ROOT"] . "/bitrix/admin",
+		);
+
+		// Icons
+		DeleteDirFiles(
+			$this->MODULE_DIR . "/install/themes/.default/icons/" . $this->MODULE_ID,
+			$_SERVER["DOCUMENT_ROOT"] . "/bitrix/themes/.default/icons/" . $this->MODULE_ID,
+		);
+
+		// Styles
+		DeleteDirFiles(
+			$this->MODULE_DIR . "/install/themes/.default",
+			$_SERVER["DOCUMENT_ROOT"] . "/bitrix/themes/.default",
+		);
+
 		return true;
 	}
 

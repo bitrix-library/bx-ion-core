@@ -86,8 +86,8 @@ class Ion
 	public static function connectOnProlog(): void
 	{
 		$instance = self::getInstance();
-		Asset::getInstance()->addJs($instance->module_relative_path . '/js/ion.js');
-		Asset::getInstance()->addCss($instance->module_relative_path . '/css/ion.css');
+		Asset::getInstance()->addJs($instance->module_relative_path . '/assets/js/ion.js');
+		Asset::getInstance()->addCss($instance->module_relative_path . '/assets/css/ion.css');
 	}
 
 	public static function connectOnEpilog(): void
