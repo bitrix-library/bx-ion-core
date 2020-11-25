@@ -80,7 +80,7 @@ $tabControl->Begin();
 	?>
 
 	<?php foreach ($arUserFields as $FIELD_NAME => $arUserField): ?>
-        <?php $arUserField['VALUE_ID'] = ION_SETTINGS_ID; ?>
+		<?php $arUserField['VALUE_ID'] = ION_SETTINGS_ID; ?>
         <tr>
             <td colspan="2">
             <span class="ion_primary_field">
