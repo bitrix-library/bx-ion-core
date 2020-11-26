@@ -14,6 +14,8 @@ use \Ion\Settings;
 
 $APPLICATION->SetTitle("Конфигурация модуля");
 
+$cur_page_url = urlencode($APPLICATION->GetCurPage());
+
 $install_status = CModule::IncludeModuleEx("ion");
 $settings = new Settings();
 $spaces = Settings::getSystemField("UF_SPACES");
@@ -94,7 +96,7 @@ $tabControl = new CAdminTabControl("tabControl", $tabs);
 	<?php endforeach; ?>
     <tr>
         <td style="text-align: left">
-            <a href="/bitrix/admin/userfield_edit.php?ENTITY_ID=<?= $system_fields_entity_id ?>">
+            <a href="/bitrix/admin/userfield_edit.php?ENTITY_ID=<?= $system_fields_entity_id ?>&back_url=<?= $cur_page_url ?>">
                 Добавить поле в системные настройки
             </a>
         </td>
@@ -127,7 +129,7 @@ $tabControl = new CAdminTabControl("tabControl", $tabs);
 		<?php endforeach; ?>
         <tr>
             <td style="text-align: left">
-                <a href="/bitrix/admin/userfield_edit.php?ENTITY_ID=<?= $fields_entity_id ?>">
+                <a href="/bitrix/admin/userfield_edit.php?ENTITY_ID=<?= $fields_entity_id ?>&back_url=<?= $cur_page_url ?>">
                     Добавить поле в пространство <?= $space ?>
                 </a>
             </td>
