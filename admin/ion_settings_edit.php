@@ -88,7 +88,8 @@ $tabControl = new CAdminTabControl("tabControl", $tabs);
             <td></td>
             <td>
                 <span class="ion_primary_span">ID: <?= $system_field["ID"] ?></span>
-                <span class="ion_primary_span">CODE: <?= $system_field_name ?></span>
+                <span class="ion_primary_span">FIELD_NAME: <?= $system_field["FIELD_NAME"] ?></span>
+                <span class="ion_primary_span">USER_TYPE_ID: <?= $system_field["USER_TYPE_ID"] ?></span>
                 <span class="ion_primary_span">SORT: <?= $system_field["SORT"] ?></span>
             </td>
         </tr>
@@ -121,7 +122,8 @@ $tabControl = new CAdminTabControl("tabControl", $tabs);
                 <td></td>
                 <td>
                     <span class="ion_primary_span">ID: <?= $field["ID"] ?></span>
-                    <span class="ion_primary_span">CODE: <?= $field_name ?></span>
+                    <span class="ion_primary_span">FIELD_NAME: <?= $field["FIELD_NAME"] ?></span>
+                    <span class="ion_primary_span">USER_TYPE_ID: <?= $field["USER_TYPE_ID"] ?></span>
                     <span class="ion_primary_span">SORT: <?= $field["SORT"] ?></span>
                 </td>
             </tr>
