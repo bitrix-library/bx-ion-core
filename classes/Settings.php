@@ -93,6 +93,30 @@ class Settings
 		return $this->USER_FIELD_MANAGER->Update($entity_id, ION_SETTINGS_ID, $this->FIELDS);
 	}
 
+	public static function getSystemFields()
+	{
+		global $USER_FIELD_MANAGER;
+
+		$entity_id = "ION_SYSTEM";
+
+		return $USER_FIELD_MANAGER->GetUserFields(
+			$entity_id,
+			ION_SETTINGS_ID
+		);
+	}
+
+	public static function getSpaceFields($space)
+	{
+		global $USER_FIELD_MANAGER;
+
+		$entity_id = "ION_SPACE_" . $space;
+
+		return $USER_FIELD_MANAGER->GetUserFields(
+			$entity_id,
+			ION_SETTINGS_ID
+		);
+	}
+
 	public static function getSystemField($field)
 	{
 		global $USER_FIELD_MANAGER;

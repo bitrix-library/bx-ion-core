@@ -144,8 +144,13 @@ $tabControl = new CAdminTabControl("tabControl", $tabs);
 <?php $tabControl->End(); ?>
 
 <?= BeginNote() ?>
-<b>Системное:</b> <i>\Ion\Settings:getSystemField("UF_FIELD");</i><br>
-<b>Пространство:</b> <i>\Ion\Settings::getSpaceField("UF_FIELD", "SPACE");</i>
+<b>Система:</b><br>
+<i>\Ion\Settings:getSystemField("UF_FIELD");</i><br>
+<i>\Ion\Settings:getSystemFields();</i><br>
+<br>
+<b>Пространство:</b><br>
+<i>\Ion\Settings::getSpaceField("UF_FIELD", "SPACE");</i><br>
+<i>\Ion\Settings::getSpaceFields("SPACE");</i>
 <?= EndNote() ?>
 
 <?php
