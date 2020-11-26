@@ -93,7 +93,11 @@ $tabControl = new CAdminTabControl("tabControl", $tabs);
 		<?= $USER_FIELD_MANAGER->GetEditFormHTML(false, $GLOBALS[$system_field_name], $system_field) ?>
 	<?php endforeach; ?>
     <tr>
-        <td></td>
+        <td style="text-align: left">
+            <a href="/bitrix/admin/userfield_edit.php?ENTITY_ID=<?= $system_fields_entity_id ?>">
+                Добавить поле в системные настройки
+            </a>
+        </td>
         <td style="text-align: right">
             <input type="submit" name="APPLY" value="Применить">
         </td>
