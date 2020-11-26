@@ -34,8 +34,8 @@ if (isset($SUCCESS) && $SUCCESS === "Y") {
 	echo CAdminMessage::ShowMessage(
 		array(
 			"TYPE" => "OK",
-			"MESSAGE" => "UPDATE SUCCESS",
-			"DETAILS" => "",
+			"MESSAGE" => "Успешно",
+			"DETAILS" => "Конфигурация модуля сохранена",
 			"HTML" => true
 		)
 	);
@@ -45,8 +45,8 @@ if (isset($ERROR) && $ERROR === "Y") {
 	echo CAdminMessage::ShowMessage(
 		array(
 			"TYPE" => "ERROR",
-			"MESSAGE" => "UPDATE ERROR",
-			"DETAILS" => $settings->LAST_ERROR,
+			"MESSAGE" => "Ошибка",
+			"DETAILS" => "Не удалось сохранить конфигурацию модуля. $settings->LAST_ERROR",
 			"HTML" => true
 		)
 	);
@@ -80,7 +80,7 @@ $tabControl = new CAdminTabControl("tabControl", $tabs);
 	<?php
 	$tabControl->BeginNextTab();
 	$system_fields_entity_id = "ION_SYSTEM";
-	$system_fields = $USER_FIELD_MANAGER->GetUserFields($system_fields_entity_id, ION_SETTINGS_ID);
+	$system_fields = $USER_FIELD_MANAGER->GetUserFields($system_fields_entity_id, ION_SETTINGS_ID, LANGUAGE_ID);
 	?>
     <input type="hidden" name="ENTITY_ID" value="<?= $system_fields_entity_id ?>">
 	<?php foreach ($system_fields as $system_field_name => $system_field): ?>
@@ -113,7 +113,7 @@ $tabControl = new CAdminTabControl("tabControl", $tabs);
 		<?php
 		$tabControl->BeginNextTab();
 		$fields_entity_id = "ION_SPACE_" . $space;
-		$fields = $USER_FIELD_MANAGER->GetUserFields($fields_entity_id, ION_SETTINGS_ID);
+		$fields = $USER_FIELD_MANAGER->GetUserFields($fields_entity_id, ION_SETTINGS_ID, LANGUAGE_ID);
 		?>
         <input type="hidden" name="ENTITY_ID" value="<?= $fields_entity_id ?>">
 		<?php foreach ($fields as $field_name => $field): ?>
