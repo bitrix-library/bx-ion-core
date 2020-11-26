@@ -21,8 +21,8 @@ class Ion extends CModule
 	 */
 	public function __construct()
 	{
-		$this->MODULE_VERSION = "1.5.0";
-		$this->MODULE_VERSION_DATE = "2020-11-25 18:00";
+		$this->MODULE_VERSION = "1.5.1";
+		$this->MODULE_VERSION_DATE = "2020-11-26 09:00";
 		$this->MODULE_NAME = "ION";
 		$this->MODULE_DESCRIPTION = "Sources: github.com/amensum/ion";
 		$this->MODULE_DIR = dirname(__DIR__);

@@ -8,9 +8,11 @@
     background-size: 20px;
 }
 
-.ion_primary_field {
-    color: #ffffff;
-    background-color: #c172ed;
-    padding: 4px 10px;
+.ion_primary_span {
+    display: inline-block;
+    margin: 2px 0;
+    padding: 2px 10px;
+    border: 1px solid #c172ed;
     border-radius: 2px;
+    color: #c172ed;
 }
