@@ -16,3 +16,13 @@
     border-radius: 2px;
     color: #c172ed;
 }
+
+.ion_docblock_code {
+    display: block;
+    font-size: 0.95em;
+    font-family: monospace;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    margin-left: 12px;
+    padding-left: 12px;
+}

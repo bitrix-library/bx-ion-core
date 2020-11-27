@@ -24,12 +24,12 @@ $spaces = array();
 foreach ($sp_codes as $space_code) {
 	$space_name = Settings::getSpaceField("UF_NAME", $space_code);
 	if ($space_name === false) {
-	    $space_name = $space_code;
-    }
+		$space_name = $space_code;
+	}
 	$spaces[] = array(
-        "CODE" => $space_code,
-        "NAME" => $space_name
-    );
+		"CODE" => $space_code,
+		"NAME" => $space_name
+	);
 }
 
 if ($REQUEST_METHOD === "POST" && isset($ENTITY_ID) && check_bitrix_sessid()) {
@@ -158,13 +158,18 @@ $tabControl = new CAdminTabControl("tabControl", $tabs);
 <?php $tabControl->End(); ?>
 
 <?= BeginNote() ?>
-<b>Система:</b><br>
-<i>\Ion\Settings:getSystemField("UF_FIELD");</i><br>
-<i>\Ion\Settings:getSystemFields();</i><br>
-<br>
-<b>Пространство:</b><br>
-<i>\Ion\Settings::getSpaceField("UF_FIELD", "SPACE");</i><br>
-<i>\Ion\Settings::getSpaceFields("SPACE");</i>
+<h3>Документация</h3>
+<p>Для указания пространству имени, необходимо создать и заполнить в нем поле UF_NAME.</p>
+<b>Код для получения поля из пространства Система:</b>
+<div class="ion_docblock_code">
+    \Ion\Settings:getSystemField("UF_FIELD");<br>
+    \Ion\Settings:getSystemFields();<br>
+</div>
+<b>Код для получения значения поля из созданного пространства:</b>
+<div class="ion_docblock_code">
+    \Ion\Settings::getSpaceField("UF_FIELD", "SPACE");<br>
+    \Ion\Settings::getSpaceFields("SPACE");<br>
+</div>
 <?= EndNote() ?>
 
 <?php
