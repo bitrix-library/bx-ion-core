@@ -18,7 +18,19 @@ $cur_page_url = urlencode($APPLICATION->GetCurPage());
 
 $install_status = CModule::IncludeModuleEx("ion");
 $settings = new Settings();
-$spaces = Settings::getSystemField("UF_SPACES");
+$sp_codes = Settings::getSystemField("UF_SPACES");
+
+$spaces = array();
+foreach ($sp_codes as $space_code) {
+	$space_name = Settings::getSpaceField("UF_NAME", $space_code);
+	if ($space_name === false) {
+	    $space_name = $space_code;
+    }
+	$spaces[] = array(
+        "CODE" => $space_code,
+        "NAME" => $space_name
+    );
+}
 
 if ($REQUEST_METHOD === "POST" && isset($ENTITY_ID) && check_bitrix_sessid()) {
 	$settings->fillFields($ENTITY_ID);
@@ -62,9 +74,9 @@ $tabs = array(
 );
 foreach ($spaces as $space) {
 	$tabs[] = array(
-		"DIV" => "edit_space_" . $space,
-		"TAB" => $space,
-		"TITLE" => "Пространство " . $space,
+		"DIV" => "edit_space_" . $space["CODE"],
+		"TAB" => $space["NAME"],
+		"TITLE" => "Пространство " . $space["NAME"],
 		"ICON" => ""
 	);
 }
@@ -113,7 +125,7 @@ $tabControl = new CAdminTabControl("tabControl", $tabs);
 		<?= bitrix_sessid_post() ?>
 		<?php
 		$tabControl->BeginNextTab();
-		$fields_entity_id = "ION_SPACE_" . $space;
+		$fields_entity_id = "ION_SPACE_" . $space["CODE"];
 		$fields = $USER_FIELD_MANAGER->GetUserFields($fields_entity_id, ION_SETTINGS_ID, LANGUAGE_ID);
 		?>
         <input type="hidden" name="ENTITY_ID" value="<?= $fields_entity_id ?>">
@@ -132,7 +144,7 @@ $tabControl = new CAdminTabControl("tabControl", $tabs);
         <tr>
             <td style="text-align: left">
                 <a href="/bitrix/admin/userfield_edit.php?ENTITY_ID=<?= $fields_entity_id ?>&back_url=<?= $cur_page_url ?>">
-                    Добавить поле в пространство <?= $space ?>
+                    Добавить поле в пространство <?= $space["NAME"] ?>
                 </a>
             </td>
             <td style="text-align: right">
