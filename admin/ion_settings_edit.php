@@ -160,12 +160,12 @@ $tabControl = new CAdminTabControl("tabControl", $tabs);
 <?= BeginNote() ?>
 <h3>Документация</h3>
 <p>Для указания пространству имени, необходимо создать и заполнить в нем поле UF_NAME.</p>
-<b>Код для получения поля из пространства Система:</b>
+<b>Код для получения полей системного пространства:</b>
 <div class="ion_docblock_code">
-    \Ion\Settings:getSystemField("UF_FIELD");<br>
-    \Ion\Settings:getSystemFields();<br>
+    \Ion\Settings::getSystemField("UF_FIELD");<br>
+    \Ion\Settings::getSystemFields();<br>
 </div>
-<b>Код для получения значения поля из созданного пространства:</b>
+<b>Код для получения полей пользовательского пространства:</b>
 <div class="ion_docblock_code">
     \Ion\Settings::getSpaceField("UF_FIELD", "SPACE");<br>
     \Ion\Settings::getSpaceFields("SPACE");<br>
