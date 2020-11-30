@@ -21,8 +21,8 @@ class Ion extends CModule
 	 */
 	public function __construct()
 	{
-		$this->MODULE_VERSION = "1.6.8";
-		$this->MODULE_VERSION_DATE = "2020-11-30 18:20";
+		$this->MODULE_VERSION = "2.0.0";
+		$this->MODULE_VERSION_DATE = "2020-11-30 19:20";
 		$this->MODULE_NAME = "ION";
 		$this->MODULE_DESCRIPTION = "Sources: github.com/amensum/ion";
 		$this->MODULE_DIR = dirname(__DIR__);
@@ -85,13 +85,12 @@ class Ion extends CModule
 	 */
 	public function DoInstall(): void
 	{
-		// global $DOCUMENT_ROOT, $APPLICATION;
 		$this->InstallFiles();
 
 		$eventManager = EventManager::getInstance();
-		$eventManager->registerEventHandler("main", "OnProlog", $this->MODULE_ID, I::class, "connectOnProlog");
-		$eventManager->registerEventHandler("main", "OnEpilog", $this->MODULE_ID, I::class, "connectOnEpilog");
-		$eventManager->registerEventHandler("main", "OnAfterEpilog", $this->MODULE_ID, I::class, "connectOnAfterEpilog");
+		$eventManager->registerEventHandler("main", "OnProlog", $this->MODULE_ID, I::class, "onProlog");
+		$eventManager->registerEventHandler("main", "OnEpilog", $this->MODULE_ID, I::class, "onEpilog");
+		$eventManager->registerEventHandler("main", "OnAfterEpilog", $this->MODULE_ID, I::class, "onAfterEpilog");
 
 		RegisterModule($this->MODULE_ID);
 	}
@@ -101,13 +100,12 @@ class Ion extends CModule
 	 */
 	public function DoUninstall(): void
 	{
-		// global $DOCUMENT_ROOT, $APPLICATION;
 		$this->UnInstallFiles();
 
 		$eventManager = EventManager::getInstance();
-		$eventManager->unRegisterEventHandler("main", "OnProlog", $this->MODULE_ID, I::class, "connectOnProlog");
-		$eventManager->unRegisterEventHandler("main", "OnEpilog", $this->MODULE_ID, I::class, "connectOnEpilog");
-		$eventManager->unRegisterEventHandler("main", "OnAfterEpilog", $this->MODULE_ID, I::class, "connectOnAfterEpilog");
+		$eventManager->unRegisterEventHandler("main", "OnProlog", $this->MODULE_ID, I::class, "onProlog");
+		$eventManager->unRegisterEventHandler("main", "OnEpilog", $this->MODULE_ID, I::class, "onEpilog");
+		$eventManager->unRegisterEventHandler("main", "OnAfterEpilog", $this->MODULE_ID, I::class, "onAfterEpilog");
 
 		UnRegisterModule($this->MODULE_ID);
 	}
