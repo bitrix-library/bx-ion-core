@@ -86,8 +86,17 @@ class Ion
 	public static function connectOnProlog(): void
 	{
 		$instance = self::getInstance();
-		Asset::getInstance()->addJs($instance->module_relative_path . '/assets/js/ion.js');
-		Asset::getInstance()->addCss($instance->module_relative_path . '/assets/css/ion.css');
+
+		$include_js = Settings::getSystemField("UF_INCLUDE_JS");
+		$include_css = Settings::getSystemField("UF_INCLUDE_CSS");
+
+		if ($include_js) {
+			Asset::getInstance()->addJs($instance->module_relative_path . '/assets/js/ion.js');
+		}
+
+		if ($include_css) {
+			Asset::getInstance()->addCss($instance->module_relative_path . '/assets/css/ion.css');
+		}
 	}
 
 	public static function connectOnEpilog(): void
@@ -217,101 +226,101 @@ class Ion
 		];
 	}
 
-    /**
-     * @param int $product_id
-     * @param string $quantity
-     * @param array $props
-     * @return array
-     */
+	/**
+	 * @param int $product_id
+	 * @param string $quantity
+	 * @param array $props
+	 * @return array
+	 */
 	public function setProductInBasket(int $product_id, string $quantity, array $props): array
 	{
-        try {
-            $site = $this->context->getSite();
+		try {
+			$site = $this->context->getSite();
 
-            $basket = Basket::loadItemsForFUser(Fuser::getId(), $site);
+			$basket = Basket::loadItemsForFUser(Fuser::getId(), $site);
 
-            $new_quantity = $quantity;
+			$new_quantity = $quantity;
 
-            if ($basketItem = $basket->getExistsItem('catalog', $product_id, $props)) {
-                if ($new_quantity[0] === '>') {
-                    $new_quantity = $basketItem->getQuantity() + substr($new_quantity, 1);
-                }
+			if ($basketItem = $basket->getExistsItem('catalog', $product_id, $props)) {
+				if ($new_quantity[0] === '>') {
+					$new_quantity = $basketItem->getQuantity() + substr($new_quantity, 1);
+				}
 
-                if ($new_quantity[0] === '<') {
-                    $new_quantity = $basketItem->getQuantity() - substr($new_quantity, 1);
-                }
+				if ($new_quantity[0] === '<') {
+					$new_quantity = $basketItem->getQuantity() - substr($new_quantity, 1);
+				}
 
-                if ($new_quantity < 1) {
-                    $new_quantity = 1;
-                }
+				if ($new_quantity < 1) {
+					$new_quantity = 1;
+				}
 
-                // Обновление товара в корзине
-                $basketItem->setField('QUANTITY', $new_quantity);
-            } else {
-                if ($new_quantity[0] === '>') {
-                    $new_quantity = substr($new_quantity, 1);
-                }
+				// Обновление товара в корзине
+				$basketItem->setField('QUANTITY', $new_quantity);
+			} else {
+				if ($new_quantity[0] === '>') {
+					$new_quantity = substr($new_quantity, 1);
+				}
 
-                if ($new_quantity[0] === '<') {
-                    $new_quantity = -substr($new_quantity, 1);
-                }
+				if ($new_quantity[0] === '<') {
+					$new_quantity = -substr($new_quantity, 1);
+				}
 
-                if ($new_quantity < 1) {
-                    $new_quantity = 1;
-                }
+				if ($new_quantity < 1) {
+					$new_quantity = 1;
+				}
 
-                // Добавление товара в корзину
-                $basketItem = $basket->createItem('catalog', $product_id);
-                $basketItem->setFields([
-                    'QUANTITY' => $new_quantity,
-                    'CURRENCY' => CurrencyManager::getBaseCurrency(),
-                    'LID' => $site,
-                    'PRODUCT_PROVIDER_CLASS' => 'CCatalogProductProvider'
-                ]);
+				// Добавление товара в корзину
+				$basketItem = $basket->createItem('catalog', $product_id);
+				$basketItem->setFields([
+					'QUANTITY' => $new_quantity,
+					'CURRENCY' => CurrencyManager::getBaseCurrency(),
+					'LID' => $site,
+					'PRODUCT_PROVIDER_CLASS' => 'CCatalogProductProvider'
+				]);
 
-                // Добавление свойств товару
-                foreach ($props as $prop) {
-                    $collection = $basketItem->getPropertyCollection();
+				// Добавление свойств товару
+				foreach ($props as $prop) {
+					$collection = $basketItem->getPropertyCollection();
 
-                    $item = $collection->createItem();
-                    $item->setFields([
-                        'NAME' => $prop['NAME'],
-                        'CODE' => $prop['CODE'],
-                        'VALUE' => $prop['VALUE'],
-                    ]);
-                }
-            }
+					$item = $collection->createItem();
+					$item->setFields([
+						'NAME' => $prop['NAME'],
+						'CODE' => $prop['CODE'],
+						'VALUE' => $prop['VALUE'],
+					]);
+				}
+			}
 
-            $basket->save();
+			$basket->save();
 
-            $basketItem = $basket->getExistsItem('catalog', $product_id, $props);
+			$basketItem = $basket->getExistsItem('catalog', $product_id, $props);
 
-            if ((bool)$basketItem && (float)$basketItem->getQuantity() === (float)$new_quantity) {
-                return [
-                    'status' => true,
-                    'result' => [
-                        'message' => 'Товар добавлен в корзину',
-                        'data' => $basketItem->getQuantity()
-                    ],
-                ];
-            }
+			if ((bool)$basketItem && (float)$basketItem->getQuantity() === (float)$new_quantity) {
+				return [
+					'status' => true,
+					'result' => [
+						'message' => 'Товар добавлен в корзину',
+						'data' => $basketItem->getQuantity()
+					],
+				];
+			}
 
-            return [
-                'status' => false,
-                'result' => [
-                    'message' => 'Не удалось изменить количество или добавить товар в корзине',
-                ],
-            ];
-        } catch (Exception $exception) {
-            return [
-                'status' => false,
-                'result' => [
-                    'message' => 'Что-то пошло не так',
-                    'exception' => $exception->getMessage()
-                ]
-            ];
-        }
-    }
+			return [
+				'status' => false,
+				'result' => [
+					'message' => 'Не удалось изменить количество или добавить товар в корзине',
+				],
+			];
+		} catch (Exception $exception) {
+			return [
+				'status' => false,
+				'result' => [
+					'message' => 'Что-то пошло не так',
+					'exception' => $exception->getMessage()
+				]
+			];
+		}
+	}
 
 	/**
 	 * @param int $product_id

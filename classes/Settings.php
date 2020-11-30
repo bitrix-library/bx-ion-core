@@ -31,48 +31,100 @@ class Settings
 			ION_SETTINGS_ID
 		);
 
+		$include_js_field = $this->USER_FIELD_MANAGER->GetUserFieldValue(
+			"ION_SYSTEM",
+			"UF_INCLUDE_JS",
+			ION_SETTINGS_ID
+		);
+
+		$include_css_field = $this->USER_FIELD_MANAGER->GetUserFieldValue(
+			"ION_SYSTEM",
+			"UF_INCLUDE_CSS",
+			ION_SETTINGS_ID
+		);
+
 		if ($spaces_field === false) {
-			$ru_label = 'Список пространств для хранения полей';
+			$ru_label = "Список пространств для хранения полей";
 
 			$field = array(
-				'ENTITY_ID' => 'ION_SYSTEM',
-				'FIELD_NAME' => 'UF_SPACES',
-				'USER_TYPE_ID' => 'string',
-				'XML_ID' => '',
-				'SORT' => 100,
-				'MULTIPLE' => 'Y',
-				'MANDATORY' => 'N',
-				'SHOW_FILTER' => 'N',
-				'SHOW_IN_LIST' => '',
-				'EDIT_IN_LIST' => '',
-				'IS_SEARCHABLE' => 'N',
-				'SETTINGS' => array(
-					'DEFAULT_VALUE' => '',
-					'SIZE' => '20',
-					'ROWS' => '1',
-					'MIN_LENGTH' => '0',
-					'MAX_LENGTH' => '0',
-					'REGEXP' => '',
+				"ENTITY_ID" => "ION_SYSTEM",
+				"FIELD_NAME" => "UF_SPACES",
+				"USER_TYPE_ID" => "string",
+				"XML_ID" => "",
+				"SORT" => 100,
+				"MULTIPLE" => "Y",
+				"MANDATORY" => "N",
+				"SHOW_FILTER" => "N",
+				"SHOW_IN_LIST" => "",
+				"EDIT_IN_LIST" => "",
+				"IS_SEARCHABLE" => "N",
+				"SETTINGS" => array(
+					"DEFAULT_VALUE" => "",
+					"SIZE" => "20",
+					"ROWS" => "1",
+					"MIN_LENGTH" => "0",
+					"MAX_LENGTH" => "0",
+					"REGEXP" => "",
 				),
-				'EDIT_FORM_LABEL' => array(
-					'ru' => $ru_label,
-					'en' => '',
+				"EDIT_FORM_LABEL" => array(
+					"ru" => $ru_label,
+					"en" => "",
 				),
-				'LIST_COLUMN_LABEL' => array(
-					'ru' => $ru_label,
-					'en' => '',
+			);
+
+			$entity = new \CUserTypeEntity();
+			$entity->Add($field);
+		}
+
+		if ($include_js_field === false) {
+			$ru_label = "Подключать JS из модуля";
+
+			$field = array(
+				"ENTITY_ID" => "ION_SYSTEM",
+				"FIELD_NAME" => "UF_INCLUDE_JS",
+				"USER_TYPE_ID" => "boolean",
+				"XML_ID" => "",
+				"SORT" => 150,
+				"MULTIPLE" => "N",
+				"MANDATORY" => "N",
+				"SHOW_FILTER" => "N",
+				"SHOW_IN_LIST" => "",
+				"EDIT_IN_LIST" => "",
+				"IS_SEARCHABLE" => "N",
+				"SETTINGS" => array(
+					"DEFAULT_VALUE" => false,
 				),
-				'LIST_FILTER_LABEL' => array(
-					'ru' => $ru_label,
-					'en' => '',
+				"EDIT_FORM_LABEL" => array(
+					"ru" => $ru_label,
+					"en" => "",
 				),
-				'ERROR_MESSAGE' => array(
-					'ru' => $ru_label,
-					'en' => '',
+			);
+
+			$entity = new \CUserTypeEntity();
+			$entity->Add($field);
+		}
+
+		if ($include_css_field === false) {
+			$ru_label = "Подключать CSS из модуля";
+
+			$field = array(
+				"ENTITY_ID" => "ION_SYSTEM",
+				"FIELD_NAME" => "UF_INCLUDE_CSS",
+				"USER_TYPE_ID" => "boolean",
+				"XML_ID" => "",
+				"SORT" => 200,
+				"MULTIPLE" => "N",
+				"MANDATORY" => "N",
+				"SHOW_FILTER" => "N",
+				"SHOW_IN_LIST" => "",
+				"EDIT_IN_LIST" => "",
+				"IS_SEARCHABLE" => "N",
+				"SETTINGS" => array(
+					"DEFAULT_VALUE" => false,
 				),
-				'HELP_MESSAGE' => array(
-					'ru' => $ru_label,
-					'en' => '',
+				"EDIT_FORM_LABEL" => array(
+					"ru" => $ru_label,
+					"en" => "",
 				),
 			);
 
