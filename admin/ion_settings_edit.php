@@ -42,7 +42,7 @@ if ($REQUEST_METHOD === "POST" && isset($ENTITY_ID) && check_bitrix_sessid()) {
 }
 
 if (isset($SUCCESS) && $SUCCESS === "Y") {
-	echo CAdminMessage::ShowMessage(
+	CAdminMessage::ShowMessage(
 		array(
 			"TYPE" => "OK",
 			"MESSAGE" => "Успешно",
@@ -53,7 +53,7 @@ if (isset($SUCCESS) && $SUCCESS === "Y") {
 }
 
 if (isset($ERROR) && $ERROR === "Y") {
-	echo CAdminMessage::ShowMessage(
+	CAdminMessage::ShowMessage(
 		array(
 			"TYPE" => "ERROR",
 			"MESSAGE" => "Ошибка",
@@ -65,20 +65,26 @@ if (isset($ERROR) && $ERROR === "Y") {
 
 $tabs = array(
 	array(
-		"DIV" => "edit_system",
+		"DIV" => "system",
 		"TAB" => "Системные настройки",
 		"TITLE" => "Системные настройки",
 		"ICON" => ""
-	),
+	)
 );
 foreach ($spaces as $space) {
 	$tabs[] = array(
-		"DIV" => "edit_space_" . $space["CODE"],
+		"DIV" => "space_" . $space["CODE"],
 		"TAB" => $space["NAME"],
 		"TITLE" => "Пространство " . $space["NAME"],
 		"ICON" => ""
 	);
 }
+$tabs[] = array(
+	"DIV" => "docs",
+	"TAB" => "Документация",
+	"TITLE" => "Документация",
+	"ICON" => ""
+);
 $tabControl = new CAdminTabControl("tabControl", $tabs);
 ?>
 
@@ -88,8 +94,8 @@ $tabControl = new CAdminTabControl("tabControl", $tabs);
 
 <form method="post" action="<?= $APPLICATION->GetCurPage() ?>" enctype="multipart/form-data">
 	<?= bitrix_sessid_post() ?>
+	<?php $tabControl->BeginNextTab(); ?>
 	<?php
-	$tabControl->BeginNextTab();
 	$system_fields_entity_id = "ION_SYSTEM";
 	$system_fields = $USER_FIELD_MANAGER->GetUserFields($system_fields_entity_id, ION_SETTINGS_ID, LANGUAGE_ID);
 	?>
@@ -122,8 +128,8 @@ $tabControl = new CAdminTabControl("tabControl", $tabs);
 <?php foreach ($spaces as $space): ?>
     <form method="post" action="<?= $APPLICATION->GetCurPage() ?>" enctype="multipart/form-data">
 		<?= bitrix_sessid_post() ?>
+		<?php $tabControl->BeginNextTab(); ?>
 		<?php
-		$tabControl->BeginNextTab();
 		$fields_entity_id = "ION_SPACE_" . $space["CODE"];
 		$fields = $USER_FIELD_MANAGER->GetUserFields($fields_entity_id, ION_SETTINGS_ID, LANGUAGE_ID);
 		?>
@@ -154,8 +160,7 @@ $tabControl = new CAdminTabControl("tabControl", $tabs);
     </form>
 <?php endforeach; ?>
 
-<?php $tabControl->End(); ?>
-
+<?php $tabControl->BeginNextTab(); ?>
 <?= BeginNote() ?>
 <h3>Документация</h3>
 <p>Для указания пространству имени, необходимо создать и заполнить в нем поле UF_NAME.</p>
@@ -170,6 +175,9 @@ $tabControl = new CAdminTabControl("tabControl", $tabs);
     \Ion\Settings::getSpaceFields("SPACE");<br>
 </div>
 <?= EndNote() ?>
+<?php $tabControl->EndTab(); ?>
+
+<?php $tabControl->End(); ?>
 
 <?php
 require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/epilog_admin.php");
