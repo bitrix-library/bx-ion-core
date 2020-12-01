@@ -4,8 +4,10 @@ require __DIR__ . '/vendor/autoload.php';
 use Ion\Ion;
 use Ion\Settings;
 use Ion\ComponentInterface;
-use Ion\TwigComponent;
+use Ion\ReactHelper;
+use Ion\ReactComponent;
 use Ion\TwigHelper;
+use Ion\TwigComponent;
 use Bitrix\Main\Loader;
 
 define('ION_SETTINGS_ID', 1);
@@ -13,9 +15,11 @@ define('ION_SETTINGS_ID', 1);
 Loader::registerAutoLoadClasses('ion', array(
 	'\\' . Ion::class => './classes/Ion.php',
 	'\\' . Settings::class => './classes/Settings.php',
-	'\\' . TwigHelper::class => './classes/TwigHelper.php',
 	'\\' . ComponentInterface::class => './classes/ComponentInterface.php',
+	'\\' . TwigHelper::class => './classes/TwigHelper.php',
 	'\\' . TwigComponent::class => './classes/TwigComponent.php',
+	'\\' . ReactHelper::class => './classes/ReactHelper.php',
+	'\\' . ReactComponent::class => './classes/ReactComponent.php',
 ));
 
 $SERVER_NAME_ARR = explode(".", strtoupper($_SERVER["SERVER_NAME"]));
