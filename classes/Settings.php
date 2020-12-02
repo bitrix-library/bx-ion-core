@@ -43,6 +43,12 @@ class Settings
 			ION_SETTINGS_ID
 		);
 
+		$include_react_field = $this->USER_FIELD_MANAGER->GetUserFieldValue(
+			"ION_SYSTEM",
+			"UF_INCLUDE_REACT",
+			ION_SETTINGS_ID
+		);
+
 		if ($spaces_field === false) {
 			$ru_label = "Список пространств для хранения полей";
 
@@ -113,6 +119,34 @@ class Settings
 				"USER_TYPE_ID" => "boolean",
 				"XML_ID" => "",
 				"SORT" => 200,
+				"MULTIPLE" => "N",
+				"MANDATORY" => "N",
+				"SHOW_FILTER" => "N",
+				"SHOW_IN_LIST" => "",
+				"EDIT_IN_LIST" => "",
+				"IS_SEARCHABLE" => "N",
+				"SETTINGS" => array(
+					"DEFAULT_VALUE" => false,
+				),
+				"EDIT_FORM_LABEL" => array(
+					"ru" => $ru_label,
+					"en" => "",
+				),
+			);
+
+			$entity = new \CUserTypeEntity();
+			$entity->Add($field);
+		}
+
+		if ($include_react_field === false) {
+			$ru_label = "Подключать React и Babel";
+
+			$field = array(
+				"ENTITY_ID" => "ION_SYSTEM",
+				"FIELD_NAME" => "UF_INCLUDE_REACT",
+				"USER_TYPE_ID" => "boolean",
+				"XML_ID" => "",
+				"SORT" => 250,
 				"MULTIPLE" => "N",
 				"MANDATORY" => "N",
 				"SHOW_FILTER" => "N",

@@ -42,13 +42,23 @@ class Ion
 
 		$include_js = Settings::getSystemField("UF_INCLUDE_JS");
 		$include_css = Settings::getSystemField("UF_INCLUDE_CSS");
+		$include_react = Settings::getSystemField("UF_INCLUDE_REACT");
 
 		if ($include_js) {
-			Asset::getInstance()->addJs($instance->module_relative_path . '/assets/js/ion.js');
+			$asset_inst = Asset::getInstance();
+			$asset_inst->addJs($instance->module_relative_path . '/assets/js/ion.js');
 		}
 
 		if ($include_css) {
-			Asset::getInstance()->addCss($instance->module_relative_path . '/assets/css/ion.css');
+			$asset_inst = Asset::getInstance();
+			$asset_inst->addCss($instance->module_relative_path . '/assets/css/ion.css');
+		}
+
+		if ($include_react) {
+			$asset_inst = Asset::getInstance();
+			$asset_inst->addString("<script src=\"https://unpkg.com/react@17/umd/react.development.js\"></script>");
+			$asset_inst->addString("<script src=\"https://unpkg.com/react-dom@17/umd/react-dom.development.js\"></script>");
+			$asset_inst->addString("<script src=\"https://unpkg.com/babel-standalone@6/babel.min.js\"></script>");
 		}
 	}
 
