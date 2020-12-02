@@ -10,7 +10,7 @@ use Bitrix\Main\Loader;
 define('ION_SETTINGS_ID', 1);
 
 Loader::registerAutoLoadClasses('ion', array(
-	'\\' . Main::class => './classes/Ion.php',
+	'\\' . Main::class => './classes/Main.php',
 	'\\' . Settings::class => './classes/Settings.php',
 	'\\' . TwigHelper::class => './classes/TwigHelper.php',
 	'\\' . ReactHelper::class => './classes/ReactHelper.php',
