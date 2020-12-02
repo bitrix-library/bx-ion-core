@@ -46,13 +46,11 @@ class ReactHelper
 			$props = json_encode($params, JSON_THROW_ON_ERROR);
 
 			return <<< JS
-				<script id="$id" type="text/babel">
-					ReactDOM.render(<$name {...$props}/>, document.querySelector("#$id"), () => {
-						const parent = document.querySelector("#$id");
-						const firstChild = parent.childNodes[0];
-						parent.replaceWith(firstChild);
-					});
-				</script>
+				<div id="$id">
+					<script type="text/babel">
+						ReactDOM.render(<$name {...$props}/>, document.querySelector("#$id"));
+					</script>
+				</div>
 				JS;
 		} catch (Exception $e) {
 			return $e->getMessage();
