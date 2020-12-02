@@ -14,7 +14,7 @@ class ReactHelper
 		self::$registry = array();
 	}
 
-	public static function registerFolder(string $path): void
+	public static function import(string $path): void
 	{
 		global $DOCUMENT_ROOT;
 
