@@ -6,12 +6,12 @@ use Bitrix\Main\Application;
 use Bitrix\Main\Page\Asset;
 
 /**
- * Class Ion
+ * Class Main
  *
  * @author https://github.com/amensum
  * @package Ion
  */
-class Ion
+class Main
 {
 	private static $instance;
 	private $context;

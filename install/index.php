@@ -1,6 +1,6 @@
 <?php
 
-use Ion\Ion as I;
+use Ion\Main;
 use Bitrix\Main\EventManager;
 
 /**
@@ -88,9 +88,9 @@ class Ion extends CModule
 		$this->InstallFiles();
 
 		$eventManager = EventManager::getInstance();
-		$eventManager->registerEventHandler("main", "OnProlog", $this->MODULE_ID, I::class, "onProlog");
-		$eventManager->registerEventHandler("main", "OnEpilog", $this->MODULE_ID, I::class, "onEpilog");
-		$eventManager->registerEventHandler("main", "OnAfterEpilog", $this->MODULE_ID, I::class, "onAfterEpilog");
+		$eventManager->registerEventHandler("main", "OnProlog", $this->MODULE_ID, Main::class, "onProlog");
+		$eventManager->registerEventHandler("main", "OnEpilog", $this->MODULE_ID, Main::class, "onEpilog");
+		$eventManager->registerEventHandler("main", "OnAfterEpilog", $this->MODULE_ID, Main::class, "onAfterEpilog");
 
 		RegisterModule($this->MODULE_ID);
 	}
@@ -103,9 +103,9 @@ class Ion extends CModule
 		$this->UnInstallFiles();
 
 		$eventManager = EventManager::getInstance();
-		$eventManager->unRegisterEventHandler("main", "OnProlog", $this->MODULE_ID, I::class, "onProlog");
-		$eventManager->unRegisterEventHandler("main", "OnEpilog", $this->MODULE_ID, I::class, "onEpilog");
-		$eventManager->unRegisterEventHandler("main", "OnAfterEpilog", $this->MODULE_ID, I::class, "onAfterEpilog");
+		$eventManager->unRegisterEventHandler("main", "OnProlog", $this->MODULE_ID, Main::class, "onProlog");
+		$eventManager->unRegisterEventHandler("main", "OnEpilog", $this->MODULE_ID, Main::class, "onEpilog");
+		$eventManager->unRegisterEventHandler("main", "OnAfterEpilog", $this->MODULE_ID, Main::class, "onAfterEpilog");
 
 		UnRegisterModule($this->MODULE_ID);
 	}
