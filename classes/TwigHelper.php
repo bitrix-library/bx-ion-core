@@ -2,29 +2,18 @@
 
 namespace Ion;
 
+use Exception;
 use Twig\Environment;
-use Twig\Error\LoaderError;
-use Twig\Error\SyntaxError;
 use Twig\Extension\DebugExtension;
 use Twig\Loader\ArrayLoader;
 
 /**
  * Class TwigHelper
- *
- * @author https://github.com/amensum
  * @package Ion
  */
 class TwigHelper
 {
-	/**
-	 * @param string $string
-	 * @param array $params
-	 * @param array $envOptions
-	 * @return string
-	 * @throws LoaderError
-	 * @throws SyntaxError
-	 */
-	public static function renderString(string $string, array $params, array $envOptions = []): string
+	public static function render(string $string, array $params, array $envOptions = []): string
 	{
 		$envDefaults = [
 			'debug' => true
@@ -36,8 +25,12 @@ class TwigHelper
 
 		$twig->addExtension(new DebugExtension());
 
-		$template = $twig->createTemplate($string);
+		try {
+			$template = $twig->createTemplate($string);
 
-		return $template->render($params);
+			return $template->render($params);
+		} catch (Exception $e) {
+			return $e->getMessage();
+		}
 	}
 }

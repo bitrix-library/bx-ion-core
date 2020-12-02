@@ -2,9 +2,13 @@
 
 namespace Ion;
 
+use Exception;
 use Bitrix\Main\Page\Asset;
-use JsonException;
 
+/**
+ * Class ReactHelper
+ * @package Ion
+ */
 class ReactHelper
 {
 	private static $installed;
@@ -34,7 +38,7 @@ class ReactHelper
 		}
 	}
 
-	public static function render(string $name, array $params = []): string
+	public static function invoke(string $name, array $params = []): string
 	{
 		$id = uniqid("react_", false);
 
@@ -50,7 +54,7 @@ class ReactHelper
 					});
 				</script>
 				JS;
-		} catch (JsonException $e) {
+		} catch (Exception $e) {
 			return $e->getMessage();
 		}
 	}
