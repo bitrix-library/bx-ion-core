@@ -7,11 +7,11 @@ use JsonException;
 
 class ReactHelper
 {
-	private static $registry;
+	private static $installed;
 
 	public function __construct()
 	{
-		self::$registry = array();
+		self::$installed = array();
 	}
 
 	public static function import(string $path): void
@@ -25,8 +25,8 @@ class ReactHelper
 			preg_match("/^(.*)\.(.*)$/", $file, $matches);
 			[$full, $name, $ext] = $matches;
 
-			if (self::$registry[$name] === null && $ext === "js") {
-				self::$registry[$name] = true;
+			if (self::$installed[$name] === null && $ext === "js") {
+				self::$installed[$name] = true;
 
 				$asset_inst = Asset::getInstance();
 				$asset_inst->addString("<script type=\"text/babel\" src=\"$path/$file\"></script>");
@@ -36,13 +36,12 @@ class ReactHelper
 
 	public static function render(string $name, array $params = []): string
 	{
-		if (self::$registry[$name] === true) {
-			$id = uniqid("react_", false);
+		$id = uniqid("react_", false);
 
-			try {
-				$props = json_encode($params, JSON_THROW_ON_ERROR);
+		try {
+			$props = json_encode($params, JSON_THROW_ON_ERROR);
 
-				return <<< JS
+			return <<< JS
 				<script id="$id" type="text/babel">
 					ReactDOM.render(<$name {...$props}/>, document.querySelector("#$id"), () => {
 						const parent = document.querySelector("#$id");
@@ -51,11 +50,8 @@ class ReactHelper
 					});
 				</script>
 				JS;
-			} catch (JsonException $e) {
-				return $e->getMessage();
-			}
+		} catch (JsonException $e) {
+			return $e->getMessage();
 		}
-
-		return false;
 	}
 }
