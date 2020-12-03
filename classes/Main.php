@@ -56,9 +56,10 @@ class Main
 
 		if ($include_react) {
 			$asset_inst = Asset::getInstance();
+			$asset_inst->addString("<script src=\"https://unpkg.com/babel-standalone@6/babel.min.js\"></script>");
 			$asset_inst->addString("<script src=\"https://unpkg.com/react@17/umd/react.development.js\"></script>");
 			$asset_inst->addString("<script src=\"https://unpkg.com/react-dom@17/umd/react-dom.development.js\"></script>");
-			$asset_inst->addString("<script src=\"https://unpkg.com/babel-standalone@6/babel.min.js\"></script>");
+			$asset_inst->addString("<script src=\"https://unpkg.com/react-bootstrap@1.4.0/dist/react-bootstrap.min.js\"></script>");
 		}
 	}
 
