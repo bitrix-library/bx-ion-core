@@ -5,7 +5,9 @@ use Ion\Main;
 use Ion\Settings;
 use Ion\ReactHelper;
 use Ion\TwigHelper;
+use Ion\UFVisualEditor;
 use Bitrix\Main\Loader;
+use Bitrix\Main\EventManager;
 
 define('ION_SETTINGS_ID', 1);
 
@@ -14,7 +16,15 @@ Loader::registerAutoLoadClasses('ion', array(
 	'\\' . Settings::class => './classes/Settings.php',
 	'\\' . TwigHelper::class => './classes/TwigHelper.php',
 	'\\' . ReactHelper::class => './classes/ReactHelper.php',
+	'\\' . UFVisualEditor::class => './classes/UFVisualEditor.php',
 ));
+
+$eventManager = EventManager::getInstance();
+$eventManager->addEventHandlerCompatible(
+	'main',
+	'OnUserTypeBuildList',
+	array(UFVisualEditor::class, 'GetUserTypeDescription')
+);
 
 $SERVER_NAME_ARR = explode(".", strtoupper($_SERVER["SERVER_NAME"]));
 $SERVER_NAME_ARR_REV = array_reverse($SERVER_NAME_ARR);
