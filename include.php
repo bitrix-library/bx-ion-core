@@ -1,10 +1,12 @@
 <?php
 require __DIR__ . '/vendor/autoload.php';
 
+use Ion\Singleton;
 use Ion\Main;
 use Ion\Settings;
-use Ion\ReactHelper;
-use Ion\TwigHelper;
+use Ion\RendererInterface;
+use Ion\ReactRenderer;
+use Ion\TwigRenderer;
 use Ion\UFVisualEditor;
 use Bitrix\Main\Loader;
 use Bitrix\Main\EventManager;
@@ -12,10 +14,12 @@ use Bitrix\Main\EventManager;
 define('ION_SETTINGS_ID', 1);
 
 Loader::registerAutoLoadClasses('ion', array(
+	'\\' . Singleton::class => './classes/Singleton.php',
 	'\\' . Main::class => './classes/Main.php',
 	'\\' . Settings::class => './classes/Settings.php',
-	'\\' . TwigHelper::class => './classes/TwigHelper.php',
-	'\\' . ReactHelper::class => './classes/ReactHelper.php',
+	'\\' . RendererInterface::class => './classes/RendererInterface.php',
+	'\\' . TwigRenderer::class => './classes/TwigRenderer.php',
+	'\\' . ReactRenderer::class => './classes/ReactRenderer.php',
 	'\\' . UFVisualEditor::class => './classes/UFVisualEditor.php',
 ));
 

@@ -11,29 +11,17 @@ use Bitrix\Main\Page\Asset;
  * @author https://github.com/amensum
  * @package Ion
  */
-class Main
+final class Main extends Singleton
 {
-	private static $instance;
-	private $context;
-	private $request;
+	protected static $instance;
+
 	private $module_absolute_path;
 	private $module_relative_path;
 
-	private function __construct()
+	public function __construct()
 	{
-		$this->context = Application::getInstance()->getContext();
-		$this->request = $this->context->getRequest();
 		$this->module_absolute_path = str_replace("\\", "/", dirname(__DIR__ . '\\..\\'));
 		$this->module_relative_path = str_replace($_SERVER['DOCUMENT_ROOT'], '', $this->module_absolute_path);
-	}
-
-	public static function getInstance(): self
-	{
-		if (self::$instance === null) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
 	}
 
 	public static function onProlog(): void

@@ -8,7 +8,7 @@ use \CFileMan;
  * Class UFVisualEditor
  * @package Ion
  */
-class UFVisualEditor
+final class UFVisualEditor
 {
 	/**
 	 * @return string[]|null
