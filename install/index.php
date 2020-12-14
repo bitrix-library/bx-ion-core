@@ -21,8 +21,8 @@ class Ion extends CModule
 	 */
 	public function __construct()
 	{
-		$this->MODULE_VERSION = "2.1.7";
-		$this->MODULE_VERSION_DATE = "2020-12-09 19:00";
+		$this->MODULE_VERSION = "2.1.8";
+		$this->MODULE_VERSION_DATE = "2020-12-14 12:30";
 		$this->MODULE_NAME = "ION";
 		$this->MODULE_DESCRIPTION = "Sources: github.com/amensum/ion";
 		$this->MODULE_DIR = dirname(__DIR__);
@@ -88,9 +88,7 @@ class Ion extends CModule
 		$this->InstallFiles();
 
 		$eventManager = EventManager::getInstance();
-		$eventManager->registerEventHandler("main", "OnProlog", $this->MODULE_ID, Main::class, "onProlog");
-		$eventManager->registerEventHandler("main", "OnEpilog", $this->MODULE_ID, Main::class, "onEpilog");
-		$eventManager->registerEventHandler("main", "OnAfterEpilog", $this->MODULE_ID, Main::class, "onAfterEpilog");
+		$eventManager->registerEventHandler("main", "OnPageStart", $this->MODULE_ID, Main::class, "getInstance");
 
 		RegisterModule($this->MODULE_ID);
 	}
@@ -103,9 +101,7 @@ class Ion extends CModule
 		$this->UnInstallFiles();
 
 		$eventManager = EventManager::getInstance();
-		$eventManager->unRegisterEventHandler("main", "OnProlog", $this->MODULE_ID, Main::class, "onProlog");
-		$eventManager->unRegisterEventHandler("main", "OnEpilog", $this->MODULE_ID, Main::class, "onEpilog");
-		$eventManager->unRegisterEventHandler("main", "OnAfterEpilog", $this->MODULE_ID, Main::class, "onAfterEpilog");
+		$eventManager->unRegisterEventHandler("main", "OnPageStart", $this->MODULE_ID, Main::class, "getInstance");
 
 		UnRegisterModule($this->MODULE_ID);
 	}

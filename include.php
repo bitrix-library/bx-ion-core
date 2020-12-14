@@ -19,12 +19,11 @@ Loader::registerAutoLoadClasses('ion', array(
 	'\\' . UFVisualEditor::class => './classes/UFVisualEditor.php',
 ));
 
-$eventManager = EventManager::getInstance();
-$eventManager->addEventHandlerCompatible(
-	'main',
-	'OnUserTypeBuildList',
-	array(UFVisualEditor::class, 'GetUserTypeDescription')
-);
+$eManager = EventManager::getInstance();
+$eManager->addEventHandlerCompatible('main', 'OnProlog', array(Main::class, 'onProlog'));
+$eManager->addEventHandlerCompatible('main', 'OnEpilog', array(Main::class, 'onEpilog'));
+$eManager->addEventHandlerCompatible('main', 'OnAfterEpilog', array(Main::class, 'onAfterEpilog'));
+$eManager->addEventHandlerCompatible('main', 'OnUserTypeBuildList', array(UFVisualEditor::class, 'GetUserTypeDescription'));
 
 $SERVER_NAME_ARR = explode(".", strtoupper($_SERVER["SERVER_NAME"]));
 $SERVER_NAME_ARR_REV = array_reverse($SERVER_NAME_ARR);
