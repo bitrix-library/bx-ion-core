@@ -5,9 +5,14 @@ require_once($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/prolog_ad
 <?php
 /**
  * @global $APPLICATION
+ * @global $USER
  * @var $USER_FIELD_MANAGER
  * @var $REQUEST_METHOD
  */
+
+if(!$USER->IsAdmin()) {
+	return;
+}
 
 use \Ion\Settings;
 

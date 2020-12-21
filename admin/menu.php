@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * @global $APPLICATION
+ * @global $USER
+ */
+
+if(!$USER->IsAdmin()) {
+	return;
+}
+
 return array(
 	"parent_menu" => "global_menu_content",
 	"section" => "ion",
