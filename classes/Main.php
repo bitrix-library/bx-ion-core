@@ -28,9 +28,9 @@ final class Main extends Singleton
 	{
 		$instance = self::getInstance();
 
-		$include_js = Settings::getSystemField("UF_INCLUDE_JS");
-		$include_css = Settings::getSystemField("UF_INCLUDE_CSS");
-		$include_react = Settings::getSystemField("UF_INCLUDE_REACT");
+		$include_js = Settings::getSpaceField("UF_INCLUDE_JS", "SYSTEM");
+		$include_css = Settings::getSpaceField("UF_INCLUDE_CSS", "SYSTEM");
+		$include_react = Settings::getSpaceField("UF_INCLUDE_REACT", "SYSTEM");
 
 		if ($include_js) {
 			$asset_inst = Asset::getInstance();

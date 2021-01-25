@@ -26,25 +26,25 @@ class Settings
 	public function prepareSpacesField()
 	{
 		$spaces_field = $this->USER_FIELD_MANAGER->GetUserFieldValue(
-			"ION_SYSTEM",
+			"ION_SPACE_SYSTEM",
 			"UF_SPACES",
 			ION_SETTINGS_ID
 		);
 
 		$include_js_field = $this->USER_FIELD_MANAGER->GetUserFieldValue(
-			"ION_SYSTEM",
+			"ION_SPACE_SYSTEM",
 			"UF_INCLUDE_JS",
 			ION_SETTINGS_ID
 		);
 
 		$include_css_field = $this->USER_FIELD_MANAGER->GetUserFieldValue(
-			"ION_SYSTEM",
+			"ION_SPACE_SYSTEM",
 			"UF_INCLUDE_CSS",
 			ION_SETTINGS_ID
 		);
 
 		$include_react_field = $this->USER_FIELD_MANAGER->GetUserFieldValue(
-			"ION_SYSTEM",
+			"ION_SPACE_SYSTEM",
 			"UF_INCLUDE_REACT",
 			ION_SETTINGS_ID
 		);
@@ -53,7 +53,7 @@ class Settings
 			$ru_label = "Список пространств для хранения полей";
 
 			$field = array(
-				"ENTITY_ID" => "ION_SYSTEM",
+				"ENTITY_ID" => "ION_SPACE_SYSTEM",
 				"FIELD_NAME" => "UF_SPACES",
 				"USER_TYPE_ID" => "string",
 				"XML_ID" => "",
@@ -86,7 +86,7 @@ class Settings
 			$ru_label = "Подключать JS из модуля";
 
 			$field = array(
-				"ENTITY_ID" => "ION_SYSTEM",
+				"ENTITY_ID" => "ION_SPACE_SYSTEM",
 				"FIELD_NAME" => "UF_INCLUDE_JS",
 				"USER_TYPE_ID" => "boolean",
 				"XML_ID" => "",
@@ -114,7 +114,7 @@ class Settings
 			$ru_label = "Подключать CSS из модуля";
 
 			$field = array(
-				"ENTITY_ID" => "ION_SYSTEM",
+				"ENTITY_ID" => "ION_SPACE_SYSTEM",
 				"FIELD_NAME" => "UF_INCLUDE_CSS",
 				"USER_TYPE_ID" => "boolean",
 				"XML_ID" => "",
@@ -142,7 +142,7 @@ class Settings
 			$ru_label = "Подключать React и Babel";
 
 			$field = array(
-				"ENTITY_ID" => "ION_SYSTEM",
+				"ENTITY_ID" => "ION_SPACE_SYSTEM",
 				"FIELD_NAME" => "UF_INCLUDE_REACT",
 				"USER_TYPE_ID" => "boolean",
 				"XML_ID" => "",
@@ -179,14 +179,34 @@ class Settings
 		return $this->USER_FIELD_MANAGER->Update($entity_id, ION_SETTINGS_ID, $this->FIELDS);
 	}
 
-	public static function getSystemFields()
+	public static function getSpaces()
+	{
+		$spaces = array();
+		foreach (self::getSpaceField("UF_SPACES", "SYSTEM") as $space_code) {
+			$space_name = self::getSpaceField("UF_NAME", $space_code);
+
+			if ($space_name === false) {
+				$space_name = $space_code;
+			}
+
+			$spaces[] = array(
+				"CODE" => $space_code,
+				"NAME" => $space_name
+			);
+		}
+
+		return $spaces;
+	}
+
+	public static function getSpaceField($field, $space)
 	{
 		global $USER_FIELD_MANAGER;
 
-		$entity_id = "ION_SYSTEM";
+		$entity_id = "ION_SPACE_" . $space;
 
-		return $USER_FIELD_MANAGER->GetUserFields(
+		return $USER_FIELD_MANAGER->GetUserFieldValue(
 			$entity_id,
+			$field,
 			ION_SETTINGS_ID
 		);
 	}
@@ -199,32 +219,6 @@ class Settings
 
 		return $USER_FIELD_MANAGER->GetUserFields(
 			$entity_id,
-			ION_SETTINGS_ID
-		);
-	}
-
-	public static function getSystemField($field)
-	{
-		global $USER_FIELD_MANAGER;
-
-		$entity_id = "ION_SYSTEM";
-
-		return $USER_FIELD_MANAGER->GetUserFieldValue(
-			$entity_id,
-			$field,
-			ION_SETTINGS_ID
-		);
-	}
-
-	public static function getSpaceField($field, $space)
-	{
-		global $USER_FIELD_MANAGER;
-
-		$entity_id = "ION_SPACE_" . $space;
-
-		return $USER_FIELD_MANAGER->GetUserFieldValue(
-			$entity_id,
-			$field,
 			ION_SETTINGS_ID
 		);
 	}
