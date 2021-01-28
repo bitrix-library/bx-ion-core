@@ -13,8 +13,6 @@ use Bitrix\Main\Page\Asset;
  */
 final class Main extends Singleton
 {
-	protected static $instance;
-
 	private $module_absolute_path;
 	private $module_relative_path;
 
