@@ -39,18 +39,19 @@ final class ReactRenderer extends Singleton implements RendererInterface
         }
     }
 
-    public static function render(string $name, array $params = []): void
+    public static function render(string $name, array $params = [], string $placeholder = ''): void
     {
         $id = uniqid("react_", false);
 
         $props = json_encode($params, JSON_THROW_ON_ERROR);
 
         echo <<< JS
-		<div id="$id">
-			<script type="text/babel">
-				ReactDOM.render(<$name {...$props}/>, document.querySelector("#$id"));
-			</script>
-		</div>
-		JS;
+        <div id="$id">
+            $placeholder
+            <script type="text/babel">
+                ReactDOM.render(<$name {...$props}/>, document.querySelector("#$id"));
+            </script>
+        </div>
+        JS;
     }
 }
