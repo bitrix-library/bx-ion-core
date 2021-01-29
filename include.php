@@ -7,6 +7,7 @@ use Ion\Settings;
 use Ion\RendererInterface;
 use Ion\ReactRenderer;
 use Ion\TwigRenderer;
+use Ion\UFUserSelect;
 use Ion\UFVisualEditor;
 use Bitrix\Main\Loader;
 use Bitrix\Main\EventManager;
@@ -21,6 +22,7 @@ Loader::registerAutoLoadClasses('ion', array(
 	'\\' . TwigRenderer::class => './classes/TwigRenderer.php',
 	'\\' . ReactRenderer::class => './classes/ReactRenderer.php',
 	'\\' . UFVisualEditor::class => './classes/UFVisualEditor.php',
+	'\\' . UFUserSelect::class => './classes/UFUserSelect.php',
 ));
 
 $eManager = EventManager::getInstance();
@@ -28,6 +30,7 @@ $eManager->addEventHandlerCompatible('main', 'OnProlog', array(Main::class, 'onP
 $eManager->addEventHandlerCompatible('main', 'OnEpilog', array(Main::class, 'onEpilog'));
 $eManager->addEventHandlerCompatible('main', 'OnAfterEpilog', array(Main::class, 'onAfterEpilog'));
 $eManager->addEventHandlerCompatible('main', 'OnUserTypeBuildList', array(UFVisualEditor::class, 'GetUserTypeDescription'));
+$eManager->addEventHandlerCompatible('main', 'OnUserTypeBuildList', array(UFUserSelect::class, 'GetUserTypeDescription'));
 
 $SERVER_NAME_ARR = explode(".", strtoupper($_SERVER["SERVER_NAME"]));
 $SERVER_NAME_ARR_REV = array_reverse($SERVER_NAME_ARR);
