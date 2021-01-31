@@ -46,10 +46,10 @@ final class ReactRenderer extends Singleton implements RendererInterface
         $props = json_encode($params, JSON_THROW_ON_ERROR);
 
         echo <<< JS
-        <div id="$id">
+        <div id="$id-container">
             $placeholder
             <script type="text/babel">
-                ReactDOM.render(<$name id={"$id"} {...$props}/>, document.querySelector("#$id"));
+                ReactDOM.render(<$name id={"$id"} {...$props}/>, document.querySelector("#$id-container"));
             </script>
         </div>
         JS;
