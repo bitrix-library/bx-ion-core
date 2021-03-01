@@ -1,5 +1,6 @@
 <?php
 require __DIR__ . '/vendor/autoload.php';
+require __DIR__ . '/install/version.php';
 
 use Ion\Singleton;
 use Ion\Main;

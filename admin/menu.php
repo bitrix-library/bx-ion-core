@@ -11,11 +11,10 @@ if (!$USER->IsAdmin()) {
 return array(
     array(
         "parent_menu" => "global_menu_content",
-        "section" => "ion",
         "sort" => 10,
         "module_id" => "ion",
-        "text" => "ion",
-        "title" => "ion",
+        "text" => "ion" . " " . ION_VERSION,
+        "title" => "ion" . " " . ION_VERSION,
         "icon" => "ion_menu_icon",
         "items_id" => "menu_ion_settings",
         "items" => array(
