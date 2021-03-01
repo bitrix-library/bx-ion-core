@@ -38,6 +38,11 @@ $ca_list->AddHeaders(array(
         "content" => "Название",
         "sort" => "NAME",
         "default" => true
+    ),
+    array(
+        "id" => "EXAMPLE",
+        "content" => "Пример кода",
+        "default" => true
     )
 ));
 
@@ -48,15 +53,14 @@ if ($table_id === "spaces_list") {
 }
 
 foreach ($spaces as $i => $space) {
-    $row = &$ca_list->AddRow($i, array("ID" => $i, "NAME" => $space["NAME"]));
+    $row = &$ca_list->AddRow($i, array(
+        "ID" => $i,
+        "NAME" => $space["NAME"],
+        "EXAMPLE" => "Ion\Settings::getSpaceField(\"UF_FIELD\", \"{$space["CODE"]}\");"
+    ));
     $row->AddActions(array(
         array(
             "DEFAULT" => true,
-            "ICON" => "",
-            "TEXT" => "Поля",
-            "ACTION" => $ca_list->ActionRedirect("ion_settings_space_view.php?space_code=" . $space["CODE"])
-        ),
-        array(
             "ICON" => "edit",
             "TEXT" => "Изменить",
             "ACTION" => $ca_list->ActionRedirect("ion_settings_space_edit.php?space_code=" . $space["CODE"])
@@ -67,7 +71,7 @@ foreach ($spaces as $i => $space) {
 $ca_list->AddAdminContextMenu(array(
     array(
         "TEXT" => "Добавить",
-        "LINK" => "ion_settings_space_add.php",
+        "LINK" => "ion_settings_conf.php",
         "TITLE" => "Добавить",
         "ICON" => "btn_new",
     ),

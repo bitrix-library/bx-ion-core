@@ -10,10 +10,9 @@ $ION_FOOTER = <<< HTML
             <p>Для указания пространству имени, необходимо создать и заполнить в нем поле UF_NAME.</p>
             <b>Код для получения полей пространства:</b>
             <div class="ion_docblock_code">
-                \Ion\Settings::getSpaceField("UF_FIELD", "SPACE");<br>
-                \Ion\Settings::getSpaceFields("SPACE");<br>
+                Ion\Settings::getSpaceField("UF_FIELD", "SPACE");<br>
+                Ion\Settings::getSpaceFields("SPACE");<br>
             </div>
-
         </div>
     </div>
 </div>
@@ -82,4 +81,4 @@ $ION_FOOTER = <<< HTML
 </style>
 HTML;
 
-require(__DIR__ . "/ion_settings_space_view.php");
+require(__DIR__ . "/ion_settings_space_edit.php");
