@@ -15,14 +15,14 @@ use Bitrix\Main\EventManager;
 define('ION_SETTINGS_ID', 1);
 
 Loader::registerAutoLoadClasses('ion', array(
-	'\\' . Singleton::class => './classes/Singleton.php',
-	'\\' . Main::class => './classes/Main.php',
-	'\\' . Settings::class => './classes/Settings.php',
-	'\\' . RendererInterface::class => './classes/RendererInterface.php',
-	'\\' . TwigRenderer::class => './classes/TwigRenderer.php',
-	'\\' . ReactRenderer::class => './classes/ReactRenderer.php',
-	'\\' . UFVisualEditor::class => './classes/UFVisualEditor.php',
-	'\\' . UFUserSelect::class => './classes/UFUserSelect.php',
+    '\\' . Singleton::class => './classes/Singleton.php',
+    '\\' . Main::class => './classes/Main.php',
+    '\\' . Settings::class => './classes/Settings.php',
+    '\\' . RendererInterface::class => './classes/RendererInterface.php',
+    '\\' . TwigRenderer::class => './classes/TwigRenderer.php',
+    '\\' . ReactRenderer::class => './classes/ReactRenderer.php',
+    '\\' . UFVisualEditor::class => './classes/UFVisualEditor.php',
+    '\\' . UFUserSelect::class => './classes/UFUserSelect.php',
 ));
 
 $eManager = EventManager::getInstance();

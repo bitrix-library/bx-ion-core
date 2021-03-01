@@ -9,7 +9,7 @@
  */
 
 if (!$USER->IsAdmin()) {
-	return;
+    return;
 }
 ?>
 
