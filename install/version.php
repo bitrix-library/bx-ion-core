@@ -1,3 +1,3 @@
 <?php
 
-define('ION_VERSION', '2.2.1');
+define('ION_VERSION', '2.2.2');

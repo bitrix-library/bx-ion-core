@@ -28,15 +28,13 @@ $ca_list = new CAdminList("spaces_list", $ca_sorting);
 
 $ca_list->AddHeaders(array(
     array(
-        "id" => "ID",
-        "content" => "ID",
-        "sort" => "ID",
+        "id" => "NAME",
+        "content" => "Название",
         "default" => true
     ),
     array(
-        "id" => "NAME",
-        "content" => "Название",
-        "sort" => "NAME",
+        "id" => "CODE",
+        "content" => "Символьный код",
         "default" => true
     ),
     array(
@@ -54,8 +52,8 @@ if ($table_id === "spaces_list") {
 
 foreach ($spaces as $i => $space) {
     $row = &$ca_list->AddRow($i, array(
-        "ID" => $i,
         "NAME" => $space["NAME"],
+        "CODE" => $space["CODE"],
         "EXAMPLE" => "Ion\Settings::getSpaceField(\"UF_FIELD\", \"{$space["CODE"]}\");"
     ));
     $row->AddActions(array(
