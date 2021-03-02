@@ -111,6 +111,15 @@ echo $ION_HEADER;
 </form>
 <?php $tabControl->End(); ?>
 
+<div class="ion_docblock">
+    <p>Для указания пространству имени, необходимо создать и заполнить в нем поле UF_NAME.</p>
+    <b>Код для получения полей пространства:</b>
+    <div class="ion_docblock_code">
+        Ion\Settings::getSpaceField("UF_NAME", "<?= $space_code ?>");<br>
+        Ion\Settings::getSpaceFields("<?= $space_code ?>");<br>
+    </div>
+</div>
+
 <?php
 global $ION_FOOTER;
 echo $ION_FOOTER;

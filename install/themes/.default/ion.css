@@ -32,6 +32,16 @@
     color: #c172ed;
 }
 
+.ion_docblock {
+    padding: 10px 20px;
+    margin: 10px 0;
+    border: 1px solid #c172ed;
+    border-radius: 8px;
+    display: block;
+    background: #ffffff;
+    color: #c172ed;
+}
+
 .ion_docblock_code {
     display: block;
     font-size: 0.95em;
