@@ -24,6 +24,10 @@ if ($space_name === false) {
     $space_name = $space_code;
 }
 
+if ($REQUEST_METHOD === "GET" && isset($clone_fields_to_space)) {
+    Settings::cloneSpace($space_code, $clone_fields_to_space);
+}
+
 if ($REQUEST_METHOD === "POST" && isset($ENTITY_ID) && check_bitrix_sessid()) {
     $settings->fillFields($ENTITY_ID);
 

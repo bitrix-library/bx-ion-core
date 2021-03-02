@@ -62,7 +62,6 @@ class Settings
                 "ENTITY_ID" => "ION_SPACE_SYSTEM",
                 "FIELD_NAME" => "UF_SPACES",
                 "USER_TYPE_ID" => "string",
-                "XML_ID" => "",
                 "SORT" => 100,
                 "MULTIPLE" => "Y",
                 "MANDATORY" => "N",
@@ -95,7 +94,6 @@ class Settings
                 "ENTITY_ID" => "ION_SPACE_SYSTEM",
                 "FIELD_NAME" => "UF_DEV_MODE",
                 "USER_TYPE_ID" => "boolean",
-                "XML_ID" => "",
                 "SORT" => 125,
                 "MULTIPLE" => "N",
                 "MANDATORY" => "N",
@@ -123,7 +121,6 @@ class Settings
                 "ENTITY_ID" => "ION_SPACE_SYSTEM",
                 "FIELD_NAME" => "UF_INCLUDE_JS",
                 "USER_TYPE_ID" => "boolean",
-                "XML_ID" => "",
                 "SORT" => 150,
                 "MULTIPLE" => "N",
                 "MANDATORY" => "N",
@@ -151,7 +148,6 @@ class Settings
                 "ENTITY_ID" => "ION_SPACE_SYSTEM",
                 "FIELD_NAME" => "UF_INCLUDE_CSS",
                 "USER_TYPE_ID" => "boolean",
-                "XML_ID" => "",
                 "SORT" => 200,
                 "MULTIPLE" => "N",
                 "MANDATORY" => "N",
@@ -179,7 +175,6 @@ class Settings
                 "ENTITY_ID" => "ION_SPACE_SYSTEM",
                 "FIELD_NAME" => "UF_INCLUDE_REACT",
                 "USER_TYPE_ID" => "boolean",
-                "XML_ID" => "",
                 "SORT" => 250,
                 "MULTIPLE" => "N",
                 "MANDATORY" => "N",
@@ -241,7 +236,8 @@ class Settings
         return $USER_FIELD_MANAGER->GetUserFieldValue(
             $entity_id,
             $field,
-            ION_SETTINGS_ID
+            ION_SETTINGS_ID,
+            LANGUAGE_ID
         );
     }
 
@@ -253,7 +249,38 @@ class Settings
 
         return $USER_FIELD_MANAGER->GetUserFields(
             $entity_id,
-            ION_SETTINGS_ID
+            ION_SETTINGS_ID,
+            LANGUAGE_ID
         );
+    }
+
+    public static function cloneSpace($space_from, $space_to)
+    {
+        $to_entity_id = "ION_SPACE_" . $space_to;
+
+        $fields = self::getSpaceFields($space_from);
+
+        foreach ($fields as $field) {
+            $cloned_field = array(
+                "ENTITY_ID" => $to_entity_id,
+                "FIELD_NAME" => $field["FIELD_NAME"],
+                "USER_TYPE_ID" => $field["USER_TYPE_ID"],
+                "SORT" => $field["SORT"],
+                "MULTIPLE" => $field["MULTIPLE"],
+                "MANDATORY" => $field["MANDATORY"],
+                "SHOW_FILTER" => $field["SHOW_FILTER"],
+                "SHOW_IN_LIST" => $field["SHOW_IN_LIST"],
+                "EDIT_IN_LIST" => $field["EDIT_IN_LIST"],
+                "IS_SEARCHABLE" => $field["IS_SEARCHABLE"],
+                "SETTINGS" => $field["SETTINGS"],
+                "EDIT_FORM_LABEL" => array(
+                    "ru" => $field["EDIT_FORM_LABEL"],
+                    "en" => ""
+                ),
+            );
+
+            $entity = new \CUserTypeEntity();
+            $entity->Add($cloned_field);
+        }
     }
 }
