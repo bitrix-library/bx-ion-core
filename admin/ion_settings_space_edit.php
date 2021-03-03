@@ -24,8 +24,14 @@ if ($space_name === false) {
     $space_name = $space_code;
 }
 
+// Hidden ability to clone space fields to another space
 if ($REQUEST_METHOD === "GET" && isset($clone_fields_to_space)) {
     Settings::cloneSpace($space_code, $clone_fields_to_space);
+
+    $add = "success=Y&space_code=" . $clone_fields_to_space;
+    $remove = array("clone_fields_to_space", "space_code", "success", "error");
+
+    LocalRedirect($APPLICATION->GetCurPageParam($add, $remove));
 }
 
 if ($REQUEST_METHOD === "POST" && isset($ENTITY_ID) && check_bitrix_sessid()) {
@@ -56,7 +62,7 @@ if (isset($success) && $success === "Y") {
         array(
             "TYPE" => "OK",
             "MESSAGE" => "Успешно",
-            "DETAILS" => "Конфигурация модуля сохранена",
+            "DETAILS" => "Операция успешно выполнена.",
             "HTML" => true
         )
     );
@@ -67,7 +73,7 @@ if (isset($error) && $error === "Y") {
         array(
             "TYPE" => "error",
             "MESSAGE" => "Ошибка",
-            "DETAILS" => "Не удалось сохранить конфигурацию модуля. $settings->LAST_ERROR",
+            "DETAILS" => "Не удалось выполнить операцию. $settings->LAST_ERROR",
             "HTML" => true
         )
     );
