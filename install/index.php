@@ -52,6 +52,14 @@ class Ion extends CModule
 			$_SERVER["DOCUMENT_ROOT"] . "/bitrix/themes/.default",
 		);
 
+		// Components
+		CopyDirFiles(
+			$this->MODULE_DIR . "/install/components/" . $this->MODULE_ID,
+			$_SERVER["DOCUMENT_ROOT"] . "/bitrix/components/" . $this->MODULE_ID,
+            true,
+            true
+		);
+
 		return true;
 	}
 
@@ -77,6 +85,9 @@ class Ion extends CModule
 			$this->MODULE_DIR . "/install/themes/.default",
 			$_SERVER["DOCUMENT_ROOT"] . "/bitrix/themes/.default",
 		);
+
+        // Components
+        DeleteDirFilesEx("/bitrix/components/" . $this->MODULE_ID);
 
 		return true;
 	}
